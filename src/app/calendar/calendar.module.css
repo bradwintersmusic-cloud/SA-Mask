@@ -1,0 +1,343 @@
+.workspace {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+}
+.viewToggle {
+  display: flex;
+  gap: 4px;
+}
+.viewToggle button {
+  min-height: 44px;
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.viewToggle button[aria-pressed="true"] {
+  color: var(--nav-active-text);
+  background: var(--nav-active-background);
+  border-color: var(--accent);
+}
+.todayButton {
+  margin-left: auto;
+}
+.dateControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dateControls input,
+.filters select {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  max-width: 100%;
+}
+.dateControls button {
+  padding-inline: 12px;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+.filters label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.filters select {
+  width: 100%;
+}
+.hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.warning {
+  border-left: 3px solid var(--warning);
+  background: var(--warning-soft);
+  padding: 12px 16px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.empty {
+  padding: 30px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  text-align: center;
+}
+.empty p {
+  font-size: 13px;
+  margin-top: 8px;
+}
+.dailyList,
+.studioStack {
+  display: grid;
+  gap: 20px;
+}
+.facility > h2 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  color: var(--accent);
+}
+.studioGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.studioSection {
+  min-width: 0;
+}
+.studioSection header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.studioSection header button {
+  min-height: 44px;
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+  font-size: 12px;
+}
+.studioSection ul {
+  padding: 0;
+  margin: 8px 0 0;
+  list-style: none;
+}
+.studioSection li + li {
+  border-top: 1px solid var(--border);
+}
+.sessionRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+  padding: 14px 12px;
+  text-align: left;
+  border: 0;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  min-height: 64px;
+  overflow-wrap: anywhere;
+}
+.sessionRow:hover {
+  background: var(--surface-2);
+}
+.sessionRow > span:last-child {
+  color: var(--accent);
+}
+.time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex: 0 0 185px;
+}
+.rowBody {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.rowBody strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+.rowBody > span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.studioGrid .sessionRow {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.studioGrid .time {
+  flex-basis: 100%;
+}
+.timelineScroll {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  padding: 20px 10px 4px;
+}
+.timeline {
+  position: relative;
+  min-width: 0;
+}
+.tick {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tick > span {
+  width: 90px;
+  flex-shrink: 0;
+  font: 10px var(--font-mono);
+  color: var(--text-muted);
+  transform: translateY(-50%);
+}
+.tick i {
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+.track {
+  position: absolute;
+  left: 100px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+.sessionBlock {
+  position: absolute;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  text-align: left;
+  padding: 6px 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sessionBlock:hover {
+  border-color: var(--accent);
+}
+.sessionBlock strong {
+  font-size: 12px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sessionBlock span,
+.sessionBlock small {
+  font-size: 10px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.details > div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+}
+.details dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.details dd {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.metadata {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.metadata dd {
+  font: 11px/1.6 var(--font-mono);
+  color: var(--text-secondary);
+}
+.notes {
+  margin-top: 20px;
+}
+.notes p {
+  margin-top: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+@media (max-width: 1000px) {
+  .studioGrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .controls {
+    padding: 12px;
+    gap: 12px;
+  }
+  .dateControls {
+    width: 100%;
+  }
+  .dateControls label {
+    flex: 1;
+    min-width: 0;
+  }
+  .dateControls input {
+    width: 100%;
+    font-size: 16px;
+  }
+  .filters {
+    flex-direction: column;
+  }
+  .filters select {
+    font-size: 16px;
+  }
+  .sessionRow {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .time {
+    flex-basis: 100%;
+  }
+  .tick > span {
+    width: 64px;
+    font-size: 9px;
+  }
+  .tick {
+    gap: 4px;
+  }
+  .track {
+    left: 68px;
+  }
+  .sessionBlock {
+    padding: 5px;
+  }
+  .details > div {
+    grid-template-columns: 85px minmax(0, 1fr);
+  }
+}

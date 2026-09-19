@@ -1,0 +1,48 @@
+.modal {
+  padding: 0;
+  width: min(540px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+  overflow: auto;
+}
+.modal::backdrop {
+  background: var(--overlay);
+}
+.panel {
+  min-width: 0;
+}
+.header {
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.header h2 {
+  margin-top: 5px;
+  font-size: 20px;
+}
+.header button {
+  padding-inline: 12px;
+}
+.body {
+  padding: 24px;
+}
+.description {
+  margin-bottom: 24px;
+}
+@media (max-width: 480px) {
+  .modal {
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 24px);
+  }
+  .header,
+  .body {
+    padding: 20px;
+  }
+}

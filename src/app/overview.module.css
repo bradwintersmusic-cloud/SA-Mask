@@ -1,0 +1,78 @@
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 28px;
+}
+.overview h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.shortcuts {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+.shortcuts a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  min-height: 80px;
+}
+.shortcuts a + a {
+  border-top: 1px solid var(--border);
+}
+.shortcuts a:hover {
+  background: var(--surface-2);
+}
+.shortcuts a > div {
+  flex: 1;
+}
+.shortcuts svg {
+  color: var(--accent);
+}
+.shortcuts strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.shortcuts p {
+  margin-top: 3px;
+  font-size: 12px;
+}
+.facilities {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+.facilities li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+.facilities li + li {
+  border-top: 1px solid var(--border);
+}
+.facilities strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+.facilities span {
+  font: 10px var(--font-mono);
+  color: var(--text-muted);
+}
+.note {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+@media (max-width: 1000px) {
+  .overview {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,104 @@
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.heading p {
+  margin-top: 6px;
+  font-size: 12px;
+}
+.themes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.themeOption {
+  padding: 12px;
+  text-align: left;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+.themeOption.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.swatch {
+  display: flex;
+  gap: 10px;
+  height: 112px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  padding: 10px;
+}
+.swatch > span:first-child {
+  width: 23%;
+  border-radius: 3px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+}
+.swatch > span:last-child {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-content: center;
+}
+.swatch i {
+  display: block;
+  height: 29px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.swatch i:first-child {
+  grid-column: 1 / -1;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--brand-secondary);
+}
+.themeLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 550;
+  margin: 12px 0 5px;
+}
+.themeDescription {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.radio {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+.selected .radio {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 600px) {
+  .themes {
+    grid-template-columns: 1fr;
+  }
+  .swatch {
+    height: 90px;
+  }
+  .heading {
+    margin-bottom: 20px;
+  }
+}

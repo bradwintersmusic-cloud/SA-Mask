@@ -1,0 +1,198 @@
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c1017;
+  --surface-1: #121822;
+  --surface-2: #19212e;
+  --surface-3: #222d3d;
+  --border: #293342;
+  --text-primary: #f0f2f5;
+  --text-secondary: #adb8c9;
+  --text-muted: #8a98ad;
+  --accent: #8aafff;
+  --accent-soft: #1c2d49;
+  --accent-strong: #416ccd;
+  --on-accent: #ffffff;
+  --success: #80c9ab;
+  --success-soft: #19332c;
+  --warning: #e3bc78;
+  --warning-soft: #342c1f;
+  --danger: #ff9e9e;
+  --danger-soft: #412329;
+  --danger-solid: #ae293a;
+  --shadow: 0 8px 28px #00000016;
+  --overlay: #050a13b8;
+  --brand-secondary: #8aafff;
+  --bg-glow: #233b6424;
+  --secondary-glow: transparent;
+  --nav-background: var(--surface-1);
+  --nav-active-background: linear-gradient(
+    100deg,
+    var(--accent-soft),
+    var(--surface-2)
+  );
+  --nav-active-text: var(--accent);
+  --nav-accent-line: transparent;
+  --shell-accent-line: transparent;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+}
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f5f8;
+  --surface-1: #ffffff;
+  --surface-2: #f5f7fb;
+  --surface-3: #e9eef5;
+  --border: #dce2ec;
+  --text-primary: #182437;
+  --text-secondary: #526179;
+  --text-muted: #647188;
+  --accent: #315fba;
+  --accent-soft: #e9effc;
+  --accent-strong: #315fba;
+  --on-accent: #ffffff;
+  --success: #267257;
+  --success-soft: #e9f5ef;
+  --warning: #865b14;
+  --warning-soft: #fbf2e3;
+  --danger: #b32238;
+  --danger-soft: #fcecef;
+  --danger-solid: #b32238;
+  --shadow: 0 8px 28px #233b6408;
+  --overlay: #101b3599;
+  --brand-secondary: #315fba;
+  --bg-glow: #8aafff16;
+}
+[data-theme="belmont"] {
+  color-scheme: light;
+  --bg: #e8ecf2;
+  --surface-1: #ffffff;
+  --surface-2: #f4f6fa;
+  --surface-3: #e7ebf3;
+  --border: #c5cedf;
+  --text-primary: #172741;
+  --text-secondary: #4f6079;
+  --text-muted: #63718a;
+  --accent: #002469;
+  --accent-soft: #e8edf7;
+  --accent-strong: #002469;
+  --on-accent: #ffffff;
+  --success: #267257;
+  --success-soft: #e9f5ef;
+  --warning: #865b14;
+  --warning-soft: #fbf2e3;
+  --danger: #c9262d;
+  --danger-soft: #fcebed;
+  --danger-solid: #c9262d;
+  --shadow: 0 8px 28px #00246909;
+  --overlay: #00133799;
+  --brand-secondary: #c9262d;
+  --bg-glow: #00246916;
+  --secondary-glow: #c9262d06;
+  --nav-background: linear-gradient(165deg, #dce5f5 0%, #f2f5fa 65%);
+  --nav-active-background: linear-gradient(110deg, #002469, #153e83);
+  --nav-active-text: #ffffff;
+  --nav-accent-line: #c9262d;
+  --shell-accent-line: #002469;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 90% 0%, var(--bg-glow), transparent 55%),
+    radial-gradient(ellipse at 0% 100%, var(--secondary-glow), transparent 60%),
+    var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.6;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(24px, 3vw, 28px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  font-weight: 650;
+}
+h2 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+p {
+  color: var(--text-secondary);
+}
+svg {
+  flex-shrink: 0;
+}
+.eyebrow {
+  font: 10px/1.5 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+.stack {
+  display: grid;
+  gap: 24px;
+}
+.muted {
+  color: var(--text-muted);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

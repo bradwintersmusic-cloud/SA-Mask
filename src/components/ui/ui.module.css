@@ -1,0 +1,123 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 550;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.primary {
+  background: var(--accent-strong);
+  color: var(--on-accent);
+}
+.primary:hover {
+  background: color-mix(in srgb, var(--accent-strong), var(--text-primary) 12%);
+}
+.secondary {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.secondary:hover,
+.ghost:hover {
+  background: var(--surface-3);
+}
+.danger {
+  background: var(--danger-solid);
+  color: var(--on-accent);
+}
+.danger:hover {
+  filter: brightness(0.92);
+}
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: var(--surface-3);
+  color: var(--text-secondary);
+}
+.accent {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.success {
+  color: var(--success);
+  background: var(--success-soft);
+}
+.warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+.error {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.field {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+.control {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+.control::placeholder {
+  color: var(--text-muted);
+}
+.empty {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 36px 20px;
+}
+.empty p {
+  max-width: 410px;
+}
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+}
