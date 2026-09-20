@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { centralDate } from "@/lib/calendar/time";
+import { calendarQueryDate, calendarQueryFilters, type CalendarQuery } from "@/lib/calendar/query";
 import { getAllFacilityCalendars } from "@/lib/studio-assistant/sessions";
 import { CalendarWorkspace } from "./CalendarWorkspace";
 export const metadata: Metadata = { title: "Calendar" };
 export const dynamic = "force-dynamic";
-export default async function CalendarPage() {
-  return (
-    <CalendarWorkspace
-      initialSnapshot={await getAllFacilityCalendars(centralDate())}
-    />
-  );
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<CalendarQuery> }) {
+  const query = await searchParams;
+  const snapshot = await getAllFacilityCalendars(calendarQueryDate(query));
+  const filters = calendarQueryFilters(query, snapshot);
+  return <CalendarWorkspace key={`${snapshot.date}:${filters.facility}:${filters.studio}`} initialSnapshot={snapshot} initialFacility={filters.facility} initialStudio={filters.studio} />;
 }

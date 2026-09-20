@@ -46,8 +46,10 @@ export function createAdapter(
     });
     return exports;
   }
+  const overview = load("src/lib/overview/activity.ts");
   return Object.assign(
     {},
+    overview,
     ...[
       "auth",
       "client",
@@ -58,7 +60,7 @@ export function createAdapter(
       "sessions",
       "enrollment",
     ].map((name) => load(`src/lib/studio-assistant/${name}.ts`)),
-    ...["time", "display", "timeline"].map((name) =>
+    ...["time", "display", "timeline", "query"].map((name) =>
       load(`src/lib/calendar/${name}.ts`),
     ),
   );

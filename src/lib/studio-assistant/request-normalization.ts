@@ -42,11 +42,16 @@ export function normalizeInternalRequests(
   const envelope = record(payload);
   if (envelope.success === false)
     throw new Error("Studio Assistant rejected the request list read.");
+  const items = record(envelope.data).items;
   const rows = Array.isArray(payload)
     ? payload
     : Array.isArray(envelope.data)
       ? envelope.data
-      : null;
+      : Array.isArray(items)
+        ? items
+        : items !== null && typeof items === "object"
+          ? Object.values(items)
+          : null;
   if (!rows)
     throw new Error("Unrecognized Studio Assistant request list response.");
   const seen = new Set<number>();

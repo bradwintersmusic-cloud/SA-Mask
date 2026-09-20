@@ -32,3 +32,15 @@ test("request queues use GET only and preserve successful facility on partial fa
   assert.equal(result.requests.length, 1);
   assert.equal(result.issues[0].facilityName, "REM");
 });
+
+test("request queues accept production data.items keyed objects and arrays without masking invalid envelopes", () => {
+  const api = createAdapter(() => { throw new Error("No network"); });
+  for (const items of [{ first: { id: 42 }, second: { id: 43 } }, [{ id: 42 }, { id: 43 }]]) {
+    const rows = api.normalizeInternalRequests({ success: true, data: { items, total: 2 } }, facility);
+    assert.deepEqual(Array.from(rows, row => row.id), [42, 43]);
+  }
+  assert.equal(api.normalizeInternalRequests({ success: true, data: { items: {} } }, facility).length, 0);
+  for (const payload of [{ data: {} }, { data: { items: null } }, { data: { items: "invalid" } }, { success: false, data: { items: {} } }, { data: { items: { first: { id: 42 }, duplicate: { id: 42 } } } }]) {
+    assert.throws(() => api.normalizeInternalRequests(payload, facility));
+  }
+});

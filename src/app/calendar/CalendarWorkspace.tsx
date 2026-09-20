@@ -21,16 +21,20 @@ import { SessionDetailsModal } from "./SessionDetailsModal";
 import styles from "./calendar.module.css";
 export function CalendarWorkspace({
   initialSnapshot,
+  initialFacility = "all",
+  initialStudio = "all",
 }: {
   initialSnapshot: CalendarSnapshot;
+  initialFacility?: string;
+  initialStudio?: string;
 }) {
   const [snapshot, setSnapshot] = useState<CalendarSnapshot | null>(
     initialSnapshot,
   );
   const [date, setDate] = useState(initialSnapshot.date);
   const [view, setView] = useState<"calendar" | "list">("calendar");
-  const [facility, setFacility] = useState("all");
-  const [studio, setStudio] = useState("all");
+  const [facility, setFacility] = useState(initialFacility);
+  const [studio, setStudio] = useState(initialStudio);
   const [selected, setSelected] = useState<StudioSession | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

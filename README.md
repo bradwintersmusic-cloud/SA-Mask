@@ -1,6 +1,6 @@
 # SA-Mask · Studio Assistant Admin
 
-Local Studio Assistant operations dashboard. Calendar and its Daily List share normalized read-only session data; Internal Requests can be viewed but actions are disabled. User Management supports live user/class search and read-only enrollment. Calendar editing, Today live data, enrollment changes, database storage, and deployment remain out of scope.
+Local Studio Assistant operations dashboard. Calendar and its Daily List share normalized read-only session data; Internal Requests can be viewed but actions are disabled. User Management supports live user/class search and read-only enrollment. Overview combines live Today activity and the request queue. Calendar editing, enrollment changes, database storage, and deployment remain out of scope.
 
 ## Setup and server-side authentication
 
@@ -124,3 +124,21 @@ Requests approve/deny now use this shared component and remain blocked in read-o
 Verification for this enhancement: lint, typecheck, 21 isolated tests, build, and live preview using the 31-member AET 4480 roster. Verified BCC-only URL, actual subject/count, Copy feedback, scrollable mobile preview, full roster despite a filtered display, disabled destructive action before/after acknowledgement, acknowledgement reset on reopening, and Escape dismissal. No email client was launched, no email was sent, and no production-data mutation was executed. Draft launching is implemented but OS/mail-client behavior was intentionally not exercised. Production writes remain false. Copy was verified by pasting into a local-only search field and comparing the result with the generated URL; the link inspector independently confirmed BCC count and subject.
 
 Main additions: `src/app/users/ClassActions.tsx`, `src/lib/email/class-email.ts`, `src/components/ui/BatchConfirmationModal.tsx`, associated styles, and `tests/class-email.test.mjs`.
+
+## Operational Overview
+
+Overview now contains one Today module: Central Time date/summary, facility → studio activity with proportional session-count rails, an all-dates attention queue (up to three request previews), and a compact navigation-only month calendar. Desktop uses asymmetric primary/secondary columns. Mobile orders summary → requests → activity → calendar, with full-width rows and comfortable calendar targets. Dark uses restrained gold within the existing navy surfaces; Light uses blue accents; Belmont retains its blue/red shell. No global theme or typography system was replaced.
+
+The server page calls the existing calendar and Requests services in parallel. Calendar sessions are filtered using the same selected-day overlap logic as Calendar; overnight sessions count if they overlap today in America/Chicago. Uncertain schedules remain represented with an explicit review note. Session totals sum the displayed studio groups; studio count excludes groups with no known room identity. Failed facilities are marked unavailable, never treated as empty. Each data source can fail independently without removing the other source or calendar navigation. Manual Refresh reloads both via the server; no polling was added.
+
+Studio rows generate `/calendar?date=YYYY-MM-DD&facility=<configured-key>&room=<returned-ID>`. Calendar awaits Next.js searchParams, validates the date and configured facility, and resolves the room only from that day's normalized, facility-matching sessions. Malformed dates fall back to Central today; unknown/mismatched rooms fall back to All Studios. Room-free deep links retain the selected facility. Rooms absent from the requested day's returned data cannot be preselected. Date URLs are bounded to years 1900–9998 for safe next-day calculations.
+
+Mini-calendar month arrows only update local month state. Days are ordinary accessible links; today uses `aria-current="date"`. There are no monthly data reads, dots, density indicators, or heatmaps. Calendar links disable prefetch so rendering a month does not eagerly load every day. Request previews and View All link to `/requests`; no new request-selection protocol was introduced.
+
+The Today placeholder and old Overview shortcut/configuration-only layout were replaced. Today was removed from shared desktop/mobile navigation; `/today` redirects to `/` to preserve bookmarks. Users, Calendar, Requests, and Settings remain available.
+
+Live review on September 19, 2026 showed **24 overlapping sessions across six studios**, with **13 at 34MSE** and **11 at REM**. This differs from raw endpoint result counts because returned sessions outside the selected Central day are excluded consistently with Calendar. The attention queue included a September 22 request, as intended. These are verification observations, not hard-coded UI values.
+
+Verification: lint, typecheck, 26 isolated tests, build; live day/room deep links, malformed date and mismatched room fallback, month navigation and exact-date selection, Today redirect, Dark/Light/Belmont desktop review, and 390px mobile review without horizontal overflow. Isolated rendering tests cover zero requests, unavailable sessions, unavailable requests, partial facilities, and future request dates. No production failure was deliberately induced. Authentication and GET reads only; production writes remain disabled.
+
+Main files: `src/app/page.tsx`, `TodayModule.tsx`, `MiniCalendar.tsx`, `overview.module.css`, `loading.tsx`, `src/lib/overview/activity.ts`, `src/lib/calendar/query.ts`, Calendar page/workspace initialization, shared navigation, and `src/app/today/page.tsx`.
