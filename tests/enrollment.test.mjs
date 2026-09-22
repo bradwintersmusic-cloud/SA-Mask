@@ -25,10 +25,10 @@ test('enrollment index bounds concurrency, caches/coalesces, preserves failures,
  await api.getClassRoster(1);await api.getUserEnrollment(9);assert.equal(calls,9);
  fail=false;api.invalidateEnrollmentCache();const fresh=await api.getUserEnrollment(9);assert.equal(fresh.failedClassIds.length,0);assert.equal(calls,18);
 });
-test('enrollment mutations reject before authentication or fetch; removal remains unresolved when enabled',async()=>{
+test('enrollment mutations reject before authentication or fetch; master switch alone cannot enable enrollment',async()=>{
  let calls=0;const api=createAdapter(()=>{calls++;throw Error('No network');},{},false);
  await assert.rejects(api.addClassMember(1,{id:9,email:'synthetic@example.test'}),/writes are disabled/);
  await assert.rejects(api.removeClassMember(1,9),/writes are disabled/);assert.equal(calls,0);
  const enabled=createAdapter(()=>{throw Error('No fetch');},{STUDIO_ASSISTANT_WRITES_ENABLED:'true'},false);
- await assert.rejects(enabled.removeClassMember(1,9),/unconfirmed/);
+ await assert.rejects(enabled.removeClassMember(1,9),/writes are disabled/);
 });

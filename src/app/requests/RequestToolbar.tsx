@@ -11,6 +11,7 @@ type Props = {
   allSelected: boolean;
   someSelected: boolean;
   busy: boolean;
+  writesEnabled: boolean;
   onSelectAll: () => void;
   onClear: () => void;
   onAction: (action: RequestAction) => void;
@@ -69,14 +70,14 @@ export function RequestToolbar(props: Props) {
             Clear
           </Button>
         </div>
-        <span className="muted">Read only · Request actions disabled</span>
+        {!props.writesEnabled && <span className="muted">Request actions disabled</span>}
         <div className={styles.actionButtons}>
-          <Button disabled={true} onClick={() => props.onAction("approve")}>
+          <Button disabled={props.busy || !props.writesEnabled || !props.selectedCount || props.selectedCount > 100} onClick={() => props.onAction("approve")}>
             Approve Selected
           </Button>
           <Button
             variant="danger"
-            disabled={true}
+            disabled={props.busy || !props.writesEnabled || !props.selectedCount || props.selectedCount > 100}
             onClick={() => props.onAction("deny")}
           >
             Deny Selected

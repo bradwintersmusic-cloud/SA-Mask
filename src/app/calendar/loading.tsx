@@ -3,10 +3,10 @@ export default function Loading() {
   return (
     <>
       <PageHeader
-        title="Calendar"
+        title="Schedule"
         description="Studio schedules · Central Time"
       />
-      <p role="status">Loading facility calendars…</p>
+      <p role="status">Loading facility schedules…</p>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { assertStudioAssistantWritesEnabled } from "./write-safety";
+import { assertInternalRequestWritesEnabled } from "./write-safety";
 import { facilities } from "@/config/facilities";
 import { studioAssistantFetch, studioAssistantMutation } from "./client";
 import { normalizeInternalRequests } from "./request-normalization";
@@ -63,7 +63,7 @@ async function updateInternalRequest(
   sessionId: number,
   action: RequestAction,
 ): Promise<void> {
-  assertStudioAssistantWritesEnabled();
+  assertInternalRequestWritesEnabled();
   if (!Number.isSafeInteger(sessionId) || sessionId <= 0)
     throw new Error("Invalid session ID.");
   const endpoint =
@@ -89,11 +89,11 @@ async function updateInternalRequest(
   }
 }
 export async function approveInternalRequest(sessionId: number) {
-  assertStudioAssistantWritesEnabled();
+  assertInternalRequestWritesEnabled();
   await updateInternalRequest(sessionId, "approve");
 }
 export async function denyInternalRequest(sessionId: number) {
-  assertStudioAssistantWritesEnabled();
+  assertInternalRequestWritesEnabled();
   await updateInternalRequest(sessionId, "deny");
 }
 
@@ -102,7 +102,7 @@ export async function processInternalRequests(
   action: unknown,
   selection: unknown,
 ): Promise<BatchRequestResult> {
-  assertStudioAssistantWritesEnabled();
+  assertInternalRequestWritesEnabled();
   if (action !== "approve" && action !== "deny")
     throw new Error("Invalid request action.");
   if (!Array.isArray(selection) || !selection.length || selection.length > 100)

@@ -13,25 +13,8 @@
   background: var(--surface-1);
   border-radius: var(--radius-md);
 }
-.viewToggle {
-  display: flex;
-  gap: 4px;
-}
-.viewToggle button {
-  min-height: 44px;
-  padding: 8px 14px;
-  color: var(--text-secondary);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-.viewToggle button[aria-pressed="true"] {
-  color: var(--nav-active-text);
-  background: var(--nav-active-background);
-  border-color: var(--accent);
-}
 .todayButton {
-  margin-left: auto;
+  margin-left: 0;
 }
 .dateControls {
   display: flex;
@@ -96,7 +79,7 @@
 .dailyList,
 .studioStack {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 .facility > h2 {
   border-bottom: 1px solid var(--border);
@@ -107,7 +90,7 @@
 .studioGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 .studioSection {
   min-width: 0;
@@ -139,12 +122,12 @@
   align-items: center;
   width: 100%;
   gap: 16px;
-  padding: 14px 12px;
+  padding: 11px 12px;
   text-align: left;
   border: 0;
   background: var(--surface-1);
   color: var(--text-primary);
-  min-height: 64px;
+  min-height: 58px;
   overflow-wrap: anywhere;
 }
 .sessionRow:hover {
@@ -240,7 +223,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.sessionBlock span,
+.sessionBlock > span,
 .sessionBlock small {
   font-size: 10px;
   color: var(--text-secondary);
@@ -341,3 +324,20 @@
     grid-template-columns: 85px minmax(0, 1fr);
   }
 }
+
+.controls { background:var(--panel-fill); box-shadow:var(--shadow),inset 0 1px 0 var(--edge-highlight); border-top-color:var(--border-active); gap:12px; padding:14px; }
+.studioSection { border:1px solid var(--border); border-radius:var(--radius-md); background:var(--panel-fill); box-shadow:var(--shadow); overflow:hidden; }
+.studioSection header { padding:10px 12px 4px; }
+.studioSection ul { margin-top:4px; }
+.sessionRow { background:transparent; transition:background .14s,box-shadow .14s; }
+.sessionRow:hover { background:color-mix(in srgb,var(--accent-soft) 55%,var(--surface-1)); box-shadow:inset 3px 0 var(--accent); }
+.timelineScroll { box-shadow:var(--shadow),inset 0 1px 0 var(--edge-highlight); }
+.tick i { background:linear-gradient(90deg,var(--border),color-mix(in srgb,var(--border) 50%,transparent)); }
+.sessionBlock { background:linear-gradient(120deg,var(--accent-soft),color-mix(in srgb,var(--accent-soft) 55%,var(--surface-1))); box-shadow:inset 0 1px 0 var(--edge-highlight),0 2px 5px #00000014; transition:border-color .14s,box-shadow .14s,background .14s; }
+.sessionBlock:hover { box-shadow:inset 0 1px 0 var(--edge-highlight),0 0 0 1px var(--accent),0 3px 12px #00000020; }
+.details > div { padding-bottom:8px; border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent); }
+.empty { background:var(--panel-fill); box-shadow:var(--shadow); }
+@media(max-width:600px) { .sessionRow { min-height:64px; padding:12px; } .controls { padding:12px; } }
+.sessionRow:focus-visible { outline-offset:-3px; }
+.details { gap:7px; }
+.details > div { padding-bottom:5px; }

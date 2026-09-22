@@ -5,8 +5,6 @@ import styles from "./calendar.module.css";
 type Props = {
   date: string;
   onDate: (date: string) => void;
-  view: "calendar" | "list";
-  onView: (view: "calendar" | "list") => void;
   facility: string;
   onFacility: (id: string) => void;
   studio: string;
@@ -17,22 +15,6 @@ type Props = {
 export function CalendarControls(props: Props) {
   return (
     <div className={styles.controls}>
-      <div
-        className={styles.viewToggle}
-        role="group"
-        aria-label="Calendar view"
-      >
-        {(["calendar", "list"] as const).map((view) => (
-          <button
-            key={view}
-            type="button"
-            aria-pressed={props.view === view}
-            onClick={() => props.onView(view)}
-          >
-            {view === "calendar" ? "Calendar" : "List"}
-          </button>
-        ))}
-      </div>
       <Button
         className={styles.todayButton}
         variant="secondary"

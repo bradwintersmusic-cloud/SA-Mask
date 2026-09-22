@@ -1,6 +1,6 @@
 import "server-only";
 import { facilities } from "@/config/facilities";
-import { centralDayRange } from "@/lib/calendar/time";
+import { centralDateRange } from "@/lib/calendar/time";
 import { studioAssistantFetch } from "./client";
 import { normalizeCalendar } from "./session-normalization";
 import type { CalendarSnapshot } from "./types";
@@ -14,8 +14,8 @@ export async function getCalendar(
   );
   if (!facility) throw new Error("Unknown facility.");
   const duration = Date.parse(end) - Date.parse(start);
-  if (!Number.isFinite(duration) || duration <= 0 || duration > 26 * 3_600_000)
-    throw new Error("Invalid day range.");
+  if (!Number.isFinite(duration) || duration <= 0)
+    throw new Error("Invalid calendar range.");
   const query = new URLSearchParams({ start, end });
   return normalizeCalendar(
     await studioAssistantFetch(
@@ -27,8 +27,9 @@ export async function getCalendar(
 }
 export async function getAllFacilityCalendars(
   date: string,
+  through: string = date,
 ): Promise<CalendarSnapshot> {
-  const range = centralDayRange(date);
+  const range = centralDateRange(date, through);
   const snapshot: CalendarSnapshot = {
     date,
     ...range,
@@ -48,7 +49,7 @@ export async function getAllFacilityCalendars(
         facilityId: facility.studioAssistantId,
         facilityName: facility.name,
         message: process.env.STUDIOASSISTANT_API_TOKEN?.trim()
-          ? "Calendar could not be loaded. Check access, response format, and connection, then refresh."
+          ? "Schedule could not be loaded. Check access, response format, and connection, then refresh."
           : "Studio Assistant API token is missing. Configure it on the server.",
       });
   });

@@ -1,6 +1,6 @@
 # SA-Mask · Studio Assistant Admin
 
-Local Studio Assistant operations dashboard. Calendar and its Daily List share normalized read-only session data; Internal Requests can be viewed but actions are disabled. User Management supports live user/class search and read-only enrollment. Overview combines live Today activity and the request queue. Calendar editing, enrollment changes, database storage, and deployment remain out of scope.
+Local Studio Assistant operations dashboard. Calendar and its Daily List share normalized read-only session data; Internal Requests support approval and denial through explicitly enabled capability flags. User Management supports live user/class search and enrollment management. Overview combines live Today activity and the request queue. Calendar editing, database storage, and deployment remain out of scope.
 
 ## Setup and server-side authentication
 
@@ -11,19 +11,26 @@ Local Studio Assistant operations dashboard. Calendar and its Daily List share n
 
 Node.js 22.13+ or 24. Scripts bind to loopback. No dashboard authentication is included, so this is a local workspace.
 
-Authentication uses the dedicated `POST /api/auth/api-login` endpoint and is allowed independently of the production write flag. All production data access during this phase is GET-only. The first read lazily authenticates; the bearer token stays in server memory and is reused until rejected. A shared in-flight promise coalesces concurrent logins and is cleared after success or failure. Tokens are never stored in browser storage, cookies, or files. Restarting the server clears the cache.
+Authentication uses the dedicated `POST /api/auth/api-login` endpoint and is allowed independently of the production write flag. Internal Request approvals/denials and enrollment add/remove are the enabled production-data writes. The first read lazily authenticates; the bearer token stays in server memory and is reused until rejected. A shared in-flight promise coalesces concurrent logins and is cleared after success or failure. Tokens are never stored in browser storage, cookies, or files. Restarting the server clears the cache.
 
 On HTTP 401, reads invalidate only the rejected cached token, authenticate again, and retry the original GET once. A late 401 cannot evict a newer token. A second 401 throws a safe authentication error; other statuses do not trigger login. Mutations are never automatically replayed. There are no refresh timers or assumed expiration periods. The former pre-issued bearer environment variable is no longer used.
 
-`.env.local` is Git-ignored. `.env.example` contains blank credentials and `STUDIO_ASSISTANT_WRITES_ENABLED=false`. Do not enable writes during this phase.
+`.env.local` remains Git-ignored. Only these feature flags were updated; unrelated values and credentials are preserved:
 
-## Read-only enforcement
+```dotenv
+STUDIO_ASSISTANT_WRITES_ENABLED=true
+STUDIO_ASSISTANT_INTERNAL_REQUEST_WRITES_ENABLED=true
+STUDIO_ASSISTANT_SESSION_DELETE_ENABLED=false
+STUDIO_ASSISTANT_ENROLLMENT_WRITES_ENABLED=true
+```
 
-`src/lib/studio-assistant/write-safety.ts` implements `assertStudioAssistantWritesEnabled()`. Missing, false, or anything other than the exact string `true` throws **before fetch**. The client exposes a GET-only `studioAssistantFetch` read pathway and an explicitly guarded `studioAssistantMutation` pathway. Individual and batch request mutations also guard before authentication or preflight reads. Dedicated authentication does not require the write guard.
+## Capability permissions
 
-The Requests server-action boundary always returns a read-only error, and Approve/Deny controls are disabled. This UI remains read-only even if an environment flag is changed; re-enabling the mutation feature is a separate future code change. The shell labels this workspace “Production · Read Only.” No session mutation controls exist.
+`write-safety.ts` requires the master switch AND the relevant capability to equal the exact string `true`. Missing flags deny access. Domain helpers guard before authentication, reads or mutations; the shared mutation transport also checks the exact endpoint/method against its capability. Unknown mutations fail closed. Authentication, token caching and GET retry behavior are unchanged.
 
-Tests replace all network access with local functions. The only mutation-helper invocations are assertions that disabled guards reject with **zero fetch calls**. There are no mutation-success tests or live verification scripts in the test suite.
+Internal Requests offer direct per-item approve/deny buttons with synchronous duplicate-submission protection and row loading/errors. Batch actions require explicit confirmation, revalidate selections against current queues, and process at most three requests concurrently. Both paths use the same single-request services and refresh real pending data afterward. Success requires the existing `success: true` and `CONFIRMED`/`DECLINED` response contract. Failed operations remain actionable with safe feedback; interrupted responses are never automatically replayed. Overview remains navigation-only and refreshes its own queue data.
+
+Session deletion remains independently disabled. Enrollment has its own enabled capability. Their UI restrictions are contextual; global read-only labels have been removed. No deletion or enrollment endpoint was executed. Request success/failure and batch concurrency are tested with isolated synthetic fetch responses, never arbitrary live approvals/denials.
 
 ## Calendar data flow
 
@@ -85,13 +92,13 @@ ESLint 9 remains pinned for compatibility with the installed Next.js React lint 
 
 ## User Management
 
-`/users` has Users and Classes modes. Members are searchable locally by case-insensitive partial name, email, username, or Belmont ID; the initial view renders instructions rather than 942 cards, and searches display at most 50 results. Selecting a user shows identity and enrollment for all known classes. Classes search supports code, name, and snippet. Selecting a class loads its alphabetically sorted roster, total count, roster search, and a candidate picker for existing school members who are not already enrolled. Add/Remove buttons are disabled; selecting a candidate does not submit anything.
+`/users` has Users and Classes modes. Members are searchable locally by case-insensitive partial name, email, username, or Belmont ID; the initial view renders instructions rather than 942 cards, and searches display at most 50 results. Selecting a user shows identity and enrollment for all known classes. Classes search supports code, name, and snippet. Selecting a class loads its alphabetically sorted roster, total count, roster search, and a candidate picker for existing school members who are not already enrolled. Add/Remove controls use guarded server actions; selecting a candidate alone does not submit anything.
 
 The centralized school is `src/config/school.ts`. `src/lib/studio-assistant/enrollment.ts` normalizes the success/data collection envelope, preserves missing optional fields, and derives user → class membership using matching numeric user IDs. Normalized fields alone reach the browser. Unknown/malformed records fail explicitly rather than silently dropping data. No semester/status filtering is inferred.
 
 School members, classes, individual rosters, and the derived index use a server-only five-minute in-memory cache with shared in-flight promises. The index is built lazily on first user selection, with at most three roster reads in flight: up to 57 roster GETs for a cold index, fewer when rosters are cached. Classes mode needs just its selected roster. A failed roster marks that class's enrollment unknown, never unenrolled. Refresh clears the directory/roster/index caches, reloads the directory, and reloads the current selection. Refreshing a selected user rebuilds the index; refreshing a selected class loads only that roster. No polling, database, browser storage, or external cache was added.
 
-The dormant `addClassMember` service guards before authentication or fetch and uses the confirmed POST route with email/uname. No UI/server action invokes it. `removeClassMember` guards and then throws an explicit unresolved-endpoint error even if writes are enabled. It contains no speculative DELETE URL. Production writes remain disabled; no enrollment POST, DELETE, PATCH, or PUT was executed. Authentication login was the only production POST used.
+`addClassMember` and `removeClassMember` are guarded enrollment services wired to User Management server actions. The confirmed DELETE route is `/api/class/{classId}/member/{userId}` with no payload. No enrollment mutation was executed during implementation.
 
 ### Live discovery — September 19, 2026
 
@@ -105,7 +112,7 @@ The dormant `addClassMember` service guards before authentication or fetch and u
 
 Verification: lint, TypeScript, 18 isolated tests, production build; live browser name/email/username/code searches, user enrollment, class search/selection, 31-member sample roster, roster filtering, prepared-but-disabled Add, disabled Remove, refresh, and a 390px mobile layout without horizontal overflow. Main files: `src/app/users/`, `src/app/api/users/route.ts`, `src/lib/studio-assistant/enrollment.ts`, `enrollment-types.ts`, `src/config/school.ts`, and `tests/enrollment.test.mjs`.
 
-Next: review the read-only workflow with the administrator. Capture authoritative removal-route documentation before implementing any removal network call; enrollment writes remain out of scope.
+Next: review the read-only workflow with the administrator. The confirmed individual removal route is documented below; the administrator will test enrollment mutations manually.
 
 ## Class email and batch confirmation
 
@@ -113,15 +120,15 @@ Selected-class actions always use the complete loaded roster, independent of ros
 
 Copy Mailto Link uses the clipboard without opening Mail. The expandable link inspector also permits manual inspection/copy; clipboard failures show a useful message. Open Draft in Mail launches that same URL only after the explicit preview action. The administrator reviews and sends manually in their chosen mail client. Links longer than 2,000 characters show a practical client-compatibility warning and are never truncated; this is a caution threshold, not a universal mail-client limit.
 
-**Remove All Students** opens a destructive confirmation using the real full roster count. Its final action stays disabled while production writes are disabled and the individual removal endpoint is unconfirmed, including after acknowledgement. No local roster changes or success results are fabricated. `removeAllClassMembers` is a guarded, explicitly unavailable service boundary with future per-user success/failure result types. Once the individual endpoint is authoritatively confirmed and writes deliberately enabled, implement three-worker individual removals with independent settled results; do not infer a bulk endpoint. No removal URL is currently present.
+**Remove All Students** opens a destructive confirmation for the exact recognized Student IDs, excluding Admin, Teacher, and Unknown members. The enabled service rechecks a fresh roster, uses three workers with individual DELETE calls, and reports per-member failures. No bulk endpoint is assumed, and no removal was executed during this pass.
 
 ### Required standard for every multi-record mutation
 
 All current and future multi-record Studio Assistant mutations must present `BatchConfirmationModal` before execution. Normal batch actions (including Requests approve/deny) require explicit Cancel/Confirm with the count and description. Destructive actions additionally require a labeled acknowledgement checkbox; the final action is disabled until acknowledged. No typed course-name confirmation is required. Mount a new modal per operation so acknowledgement cannot carry over. During processing, confirmation and cancellation are disabled. A blocked reason prevents confirmation regardless of acknowledgement. Confirmation is a UI safety layer and never replaces the server-side write guard.
 
-Requests approve/deny now use this shared component and remain blocked in read-only mode. Future batch session deletion must use destructive confirmation, but no session-deletion feature was implemented.
+Batch request approve/deny uses this shared confirmation component. Individual quick actions execute directly. Session deletion uses destructive confirmation but remains disabled.
 
-Verification for this enhancement: lint, typecheck, 21 isolated tests, build, and live preview using the 31-member AET 4480 roster. Verified BCC-only URL, actual subject/count, Copy feedback, scrollable mobile preview, full roster despite a filtered display, disabled destructive action before/after acknowledgement, acknowledgement reset on reopening, and Escape dismissal. No email client was launched, no email was sent, and no production-data mutation was executed. Draft launching is implemented but OS/mail-client behavior was intentionally not exercised. Production writes remain false. Copy was verified by pasting into a local-only search field and comparing the result with the generated URL; the link inspector independently confirmed BCC count and subject.
+Verification for this enhancement: lint, typecheck, 21 isolated tests, build, and live preview using the 31-member AET 4480 roster. Verified BCC-only URL, actual subject/count, Copy feedback, scrollable mobile preview, full roster despite a filtered display, disabled destructive action before/after acknowledgement, acknowledgement reset on reopening, and Escape dismissal. No email client was launched, no email was sent, and no production-data mutation was executed. Draft launching is implemented but OS/mail-client behavior was intentionally not exercised. This earlier verification ran with writes disabled; current capabilities are documented above. Copy was verified by pasting into a local-only search field and comparing the result with the generated URL; the link inspector independently confirmed BCC count and subject.
 
 Main additions: `src/app/users/ClassActions.tsx`, `src/lib/email/class-email.ts`, `src/components/ui/BatchConfirmationModal.tsx`, associated styles, and `tests/class-email.test.mjs`.
 
@@ -142,3 +149,27 @@ Live review on September 19, 2026 showed **24 overlapping sessions across six st
 Verification: lint, typecheck, 26 isolated tests, build; live day/room deep links, malformed date and mismatched room fallback, month navigation and exact-date selection, Today redirect, Dark/Light/Belmont desktop review, and 390px mobile review without horizontal overflow. Isolated rendering tests cover zero requests, unavailable sessions, unavailable requests, partial facilities, and future request dates. No production failure was deliberately induced. Authentication and GET reads only; production writes remain disabled.
 
 Main files: `src/app/page.tsx`, `TodayModule.tsx`, `MiniCalendar.tsx`, `overview.module.css`, `loading.tsx`, `src/lib/overview/activity.ts`, `src/lib/calendar/query.ts`, Calendar page/workspace initialization, shared navigation, and `src/app/today/page.tsx`.
+
+### Calendar List session management
+
+List defaults to the Calendar's selected day and facility/studio context. Start/end dates are inclusive in `America/Chicago`, using the existing DST-aware boundaries. Apply dates fetches only that window through the shared Calendar service. Today resets the dates; Clear Filters resets everything to Central Today. Timeline remains single-day. Existing Calendar deep links remain supported; List filter URL persistence is not implemented.
+
+Facility, studio, selected school user, and case-insensitive partial text filters compose locally. The member picker reuses the five-minute school-member cache without loading class rosters or making requests per keystroke. Read-only inspection found 17 positive session `user` IDs across both facilities, all matching school members and agreeing with available email. That real field is normalized as `userId`; an absent ID can fall back to exact email only when unique in the directory. Names are never treated as identifiers. Unassociated sessions remain visible without a user filter.
+
+Results group by Central date, facility, studio and start time. Overnight overlaps appear once; incomplete records remain inspectable. Selection clears on filter edits, date changes, refresh, and leaving List. Select All selects only displayed records with unambiguous IDs. Missing/duplicate IDs are visible but ineligible for deletion. The preview captures exact records rather than reinterpreting a query.
+
+Deletion is a **read-only demonstration**. The shared destructive confirmation requires acknowledgement and permanently blocks the final action in this demo. No optimistic removal or simulated success is used. Dormant server helpers check `assertSessionDeleteEnabled()` before authentication/network, validate explicit facility/session references, and compose the known individual DELETE endpoint with three workers and independent results. A future handler awaits actual responses, reports failures by ID, refreshes data, and clears selection. Session deletion remains disabled. No DELETE request was executed or success-tested; only guard rejection with zero network calls was tested.
+
+### Enrollment activation, roles, and Class visibility
+
+Enrollment is now enabled through the master and enrollment flags. Server actions resolve school members/classes and call guarded `POST /api/class/{classId}/member` with `{email, uname}`, or `DELETE /api/class/{classId}/member/{userId}` without a body. Add requires an explicit success response; remove additionally requires `type: "DELETED"`. Responses are awaited before refreshing the selected view. All enrollment caches, including the derived user index, are invalidated. No automatic write retries or optimistic deletion are used.
+
+A GET-only inspection of class 8796 returned 77 members with numeric `prm` codes. The administrator confirmed **2 = Admin, 1 = Teacher, 0 = Student**. Roster normalization preserves these roles; missing/unrecognized codes are Unknown. Display order is Admin → Teacher → Student → Unknown, alphabetically within each group. Compact Admin/Teacher chips identify instructional members. School-directory searching and Email Class behavior are unchanged.
+
+Remove All Students captures the exact student IDs shown in its destructive confirmation, independent of roster search. On future execution the server reads a fresh roster and only removes captured IDs still classified Student. Admins, Teachers, Unknown roles, missing members, and new students outside the confirmed selection are excluded. Three workers issue individual removals and report partial failures by member ID. The affected count is the confirmed student count.
+
+The administrator confirmed **session service ID 29 = Class**. Classification uses that ID, never a course name, session title, or artist/course association: regular student bookings can also reference a course. One shared Class chip appears in Schedule summaries, timeline blocks, and List rows without changing timeline geometry.
+
+List defaults to **Hide Classes on**. The filter composes with every existing filter and search; toggling it clears selection/confirmation. Counts and Select All derive only from the visible results. Clear Filters restores this safe default. Session deletion remains disabled and its confirmation stays blocked.
+
+Verification for this pass uses static/code checks, pure local normalization/filter tests, and read-only UI inspection. No enrollment POST, enrollment DELETE, session DELETE, or other production mutation was executed. Enrollment response handling is wired for the administrator's later targeted manual testing.

@@ -14,7 +14,9 @@ import {
 } from "@/lib/calendar/display";
 import { validDate } from "@/lib/calendar/time";
 import { loadCalendar } from "@/lib/calendar/browser-client";
+import { ScheduleViewSwitch } from "./ScheduleViewSwitch";
 import { CalendarControls } from "./CalendarControls";
+import { SessionManager } from "./SessionManager";
 import { DailyList } from "./DailyList";
 import { DayTimeline } from "./DayTimeline";
 import { SessionDetailsModal } from "./SessionDetailsModal";
@@ -42,7 +44,7 @@ export function CalendarWorkspace({
   useEffect(() => () => controller.current?.abort(), []);
   async function refresh(nextDate = date) {
     if (!validDate(nextDate)) {
-      setError("Choose a valid calendar date.");
+      setError("Choose a valid schedule date.");
       return;
     }
     controller.current?.abort();
@@ -66,7 +68,7 @@ export function CalendarWorkspace({
       if (!request.signal.aborted) {
         setSnapshot(null);
         setError(
-          "Calendar could not be loaded. Check the connection and refresh.",
+          "Schedule could not be loaded. Check the connection and refresh.",
         );
       }
     } finally {
@@ -90,11 +92,12 @@ export function CalendarWorkspace({
     snapshot?.issues.filter(
       (issue) => facility === "all" || String(issue.facilityId) === facility,
     ) ?? [];
+  if (view === "list") return <SessionManager initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} initialStudio={studio} onTimeline={(day) => { setView("calendar"); void refresh(day); }} />;
   return (
     <>
       <PageHeader
-        title="Calendar"
-        description="Daily studio schedules · America/Chicago"
+        title="Schedule"
+        description="Studio schedules · Central Time"
         action={
           <Button variant="secondary" disabled={busy} onClick={() => refresh()}>
             {busy ? "Loading…" : "Refresh"}
@@ -102,11 +105,10 @@ export function CalendarWorkspace({
         }
       />
       <div className={styles.workspace}>
+        <ScheduleViewSwitch view={view} onView={setView} />
         <CalendarControls
           date={date}
           onDate={(value) => refresh(value)}
-          view={view}
-          onView={setView}
           facility={facility}
           onFacility={(value) => {
             setFacility(value);
@@ -117,13 +119,14 @@ export function CalendarWorkspace({
           rooms={studios}
           busy={busy}
         />
+        {studio !== "all" && <div><Button variant="secondary" onClick={() => { setFacility("all"); setStudio("all"); }}>← Return to Schedule</Button></div>}
         <p className={styles.hint}>
           Studios are discovered from this response. Rooms with no returned
           sessions may not be listed.
         </p>
         {busy ? (
           <p role="status" className={styles.empty}>
-            Loading facility calendars…
+            Loading facility schedules…
           </p>
         ) : (
           <>
@@ -148,7 +151,7 @@ export function CalendarWorkspace({
               <div className={styles.empty}>
                 <h2>
                   {relevantIssues.length
-                    ? "Calendar unavailable or incomplete"
+                    ? "Schedule unavailable or incomplete"
                     : "No sessions"}
                 </h2>
                 <p>
@@ -159,9 +162,7 @@ export function CalendarWorkspace({
               </div>
             )}
             {visible.length > 0 &&
-              (view === "list" ? (
-                <DailyList sessions={visible} onSelect={setSelected} />
-              ) : detailed ? (
+              (detailed ? (
                 <>
                   <h2>
                     {

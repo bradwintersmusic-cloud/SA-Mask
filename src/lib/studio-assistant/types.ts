@@ -13,12 +13,14 @@ export type StudioSession = {
   rawStart: string | null;
   rawEnd: string | null;
   timezone: string | null;
+  userId: number | null;
   contactName: string | null;
   contactEmail: string | null;
   projectId: number | null;
   projectName: string | null;
   projectCode: string | null;
   serviceName: string | null;
+  isClass: boolean;
   bookingId: number | null;
   sessionType: string | null;
   bookingType: string | null;

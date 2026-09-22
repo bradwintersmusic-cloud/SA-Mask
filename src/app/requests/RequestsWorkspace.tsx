@@ -17,8 +17,10 @@ import styles from "./requests.module.css";
 type Feedback = { result: BatchRequestResult; requests: InternalRequest[] };
 export function RequestsWorkspace({
   initialSnapshot,
+  writesEnabled,
 }: {
   initialSnapshot: RequestsSnapshot;
+  writesEnabled: boolean;
 }) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [facility, setFacility] = useState("all");
@@ -31,6 +33,10 @@ export function RequestsWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
   const inFlight = useRef(false);
+  const pendingRef = useRef(new Set<string>());
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+  const latestSnapshot = useRef(initialSnapshot.loadedAt);
   const visible = snapshot.requests.filter(
     (request) => facility === "all" || String(request.facilityId) === facility,
   );
@@ -44,7 +50,13 @@ export function RequestsWorkspace({
     next: RequestsSnapshot,
     successful = new Set<string>(),
   ) {
-    setSnapshot(next);
+    if (next.loadedAt < latestSnapshot.current) {
+      setSelected(previous => new Set([...previous].filter(key => !successful.has(key))));
+      return;
+    }
+    latestSnapshot.current = next.loadedAt;
+    // A failed facility read must not make its unresolved requests disappear.
+    setSnapshot(previous => ({ ...next, requests: [...next.requests, ...previous.requests.filter(request => next.issues.some(issue => issue.facilityId === request.facilityId))] }));
     const available = new Set(next.requests.map(requestKey));
     setSelected(
       (previous) =>
@@ -56,7 +68,7 @@ export function RequestsWorkspace({
     );
   }
   function refresh() {
-    if (inFlight.current) return;
+    if (inFlight.current || pendingRef.current.size) return;
     inFlight.current = true;
     setError(null);
     startTransition(async () => {
@@ -90,13 +102,14 @@ export function RequestsWorkspace({
     });
   }
   function confirmAction(action: RequestAction) {
+    if (!writesEnabled || inFlight.current || pendingRef.current.size) return;
     const requests = visible.filter((request) =>
       selected.has(requestKey(request)),
     );
     if (requests.length) setConfirmation({ action, requests });
   }
   function execute() {
-    if (!confirmation || inFlight.current) return;
+    if (!writesEnabled || !confirmation || inFlight.current || pendingRef.current.size) return;
     const confirmed = confirmation;
     inFlight.current = true;
     setConfirmation(null);
@@ -116,16 +129,7 @@ export function RequestsWorkspace({
         const successful = new Set(
           result.results.filter((item) => item.success).map(requestKey),
         );
-        // Remove acknowledged successes even if the upstream read is briefly stale.
-        acceptSnapshot(
-          {
-            ...result.snapshot,
-            requests: result.snapshot.requests.filter(
-              (item) => !successful.has(requestKey(item)),
-            ),
-          },
-          successful,
-        );
+        acceptSnapshot(result.snapshot, successful);
         setFeedback({ result, requests: confirmed.requests });
       } catch {
         setError(
@@ -141,6 +145,31 @@ export function RequestsWorkspace({
       }
     });
   }
+  async function quickAction(request: InternalRequest, action: RequestAction) {
+    const key = requestKey(request);
+    if (!writesEnabled || inFlight.current || confirmation || pendingRef.current.has(key)) return;
+    pendingRef.current.add(key);
+    setPending(new Set(pendingRef.current));
+    setRowErrors(previous => ({ ...previous, [key]: "" }));
+    try {
+      const response = await updateRequests(action, [{ id: request.id, facilityId: request.facilityId }]);
+      if (!response.data) {
+        setRowErrors(previous => ({ ...previous, [key]: response.error }));
+        return;
+      }
+      const result = response.data;
+      const successful = new Set(result.results.filter(item => item.success).map(requestKey));
+      acceptSnapshot(result.snapshot, successful);
+      const failure = result.results.find(item => !item.success);
+      if (failure) setRowErrors(previous => ({ ...previous, [key]: failure.message }));
+      setFeedback({ result, requests: [request] });
+    } catch {
+      setRowErrors(previous => ({ ...previous, [key]: "Update could not be confirmed. Refresh before retrying." }));
+    } finally {
+      pendingRef.current.delete(key);
+      setPending(new Set(pendingRef.current));
+    }
+  }
   const failed = feedback?.result.results.filter((item) => !item.success) ?? [];
   const succeeded =
     feedback?.result.results.filter((item) => item.success).length ?? 0;
@@ -150,7 +179,7 @@ export function RequestsWorkspace({
         title="Internal Requests"
         description="Review pending requests across 34MSE and REM."
         action={
-          <Button variant="secondary" onClick={refresh} disabled={busy}>
+          <Button variant="secondary" onClick={refresh} disabled={busy || pending.size > 0}>
             {busy ? "Working…" : "Refresh"}
           </Button>
         }
@@ -213,7 +242,8 @@ export function RequestsWorkspace({
           selectedCount={selected.size}
           allSelected={allSelected}
           someSelected={someSelected}
-          busy={busy || !!error}
+          writesEnabled={writesEnabled}
+          busy={busy || !!error || pending.size > 0}
           onSelectAll={selectAll}
           onClear={() => setSelected(new Set())}
           onAction={confirmAction}
@@ -233,6 +263,10 @@ export function RequestsWorkspace({
             selected={selected}
             disabled={busy || !!error}
             onToggle={toggle}
+            pending={pending}
+            errors={rowErrors}
+            actionsDisabled={!writesEnabled || busy || !!error || !!confirmation}
+            onAction={quickAction}
           />
         ) : (
           <div className={styles.empty}>
@@ -261,7 +295,7 @@ export function RequestsWorkspace({
         affectedCount={confirmation.requests.length}
         actionLabel={`${confirmation.action === "approve" ? "Approve" : "Deny"} ${confirmation.requests.length}`}
         loading={busy}
-        blockedReason="Production is read only. Request actions are disabled."
+        blockedReason={writesEnabled ? undefined : "Request actions disabled"}
         onConfirm={execute}
         onCancel={() => setConfirmation(null)}
         title={`${confirmation?.action === "approve" ? "Approve" : "Deny"} ${confirmation?.requests.length ?? 0} ${confirmation?.requests.length === 1 ? "request" : "requests"}?`}

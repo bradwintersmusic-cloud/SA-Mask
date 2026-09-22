@@ -1,3 +1,4 @@
+import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { StudioSession } from "@/lib/studio-assistant/types";
 import {
   groupStudios,
@@ -51,7 +52,7 @@ export function DailyList({
                             {sessionRange(session)}
                           </span>
                           <span className={styles.rowBody}>
-                            <strong>{sessionLabel(session)}</strong>
+                            <strong>{sessionLabel(session)} {session.isClass && <CategoryChip kind="class" />}</strong>
                             {session.contactName && (
                               <span>{session.contactName}</span>
                             )}

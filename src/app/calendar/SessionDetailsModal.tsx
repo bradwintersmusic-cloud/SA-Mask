@@ -2,6 +2,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import type { StudioSession } from "@/lib/studio-assistant/types";
 import { sessionLabel, roomLabel } from "@/lib/calendar/display";
+import { formatDuration } from "@/lib/calendar/duration";
 import { sessionDateTime } from "@/lib/calendar/time";
 import styles from "./calendar.module.css";
 export function SessionDetailsModal({
@@ -24,7 +25,7 @@ export function SessionDetailsModal({
           session.start &&
           session.end &&
           Date.parse(session.end) > Date.parse(session.start)
-            ? `${Math.round((Date.parse(session.end) - Date.parse(session.start)) / 60_000)} minutes`
+            ? formatDuration(Math.round((Date.parse(session.end) - Date.parse(session.start)) / 60_000))
             : null,
         ],
         ["Project", session.projectName],
@@ -38,9 +39,6 @@ export function SessionDetailsModal({
         ["Booking ID", session.bookingId],
         ["Project ID", session.projectId],
         ["Room ID", session.roomId],
-        ["Session type", session.sessionType],
-        ["Booking type", session.bookingType],
-        ["Status", session.status],
         ["Source timezone", session.timezone],
       ]
     : [];

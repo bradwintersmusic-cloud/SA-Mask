@@ -29,7 +29,7 @@ const render=(props)=>renderToStaticMarkup(React.createElement(TodayModule,{toda
 test('Overview renders honest empty and independent failure states without losing navigation',()=>{
  const empty=render({});assert.match(empty,/No Internal Requests/);assert.match(empty,/No sessions today/);assert.match(empty,/aria-current="date"/);
  const requestFailure=render({requests:null});assert.match(requestFailure,/Requests unavailable/);assert.match(requestFailure,/Studio activity/);assert.doesNotMatch(requestFailure,/No Internal Requests/);
- const sessionFailure=render({calendar:null});assert.match(sessionFailure,/Session activity unavailable/);assert.match(sessionFailure,/No Internal Requests/);assert.match(sessionFailure,/Open calendar for 2026-09-24/);
+ const sessionFailure=render({calendar:null});assert.match(sessionFailure,/Session activity unavailable/);assert.match(sessionFailure,/No Internal Requests/);assert.match(sessionFailure,/Open schedule for 2026-09-24/);
 });
 test('Overview retains future requests and labels partial facility results',()=>{
  const html=render({calendar:{...calendar,issues:[{facilityId:7808,facilityName:'REM'}]},requests:{...requests,requests:[{id:1,facilityId:7807,requesterName:'Synthetic request',roomName:'Synthetic room',facilityName:'34MSE',start:'2026-10-01T15:00:00Z'}]}});

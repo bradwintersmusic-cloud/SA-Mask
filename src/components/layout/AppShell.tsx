@@ -13,7 +13,7 @@ function Brand() {
         <span />
       </span>
       <div>
-        Studio Assistant<small>PRODUCTION · READ ONLY</small>
+        SA Mask<small>PRODUCTION</small>
       </div>
     </div>
   );
@@ -36,14 +36,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className={styles.version}>
-          <span className="eyebrow">SA / ADMIN</span>
+          <span className="eyebrow">SA / MASK</span>
           <span>v0.1</span>
         </div>
       </aside>
       <div className={styles.workspace}>
         <header className={styles.topbar}>
           <div className={styles.desktopCrumb}>
-            Workspace <span>/</span> <strong>Production · Read Only</strong>
+            Workspace <span>/</span> <strong>Production</strong>
           </div>
           <div className={styles.mobileBrand}>
             <Brand />

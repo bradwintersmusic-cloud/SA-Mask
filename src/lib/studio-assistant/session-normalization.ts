@@ -65,6 +65,7 @@ export function normalizeCalendar(
       rawStart: code(row.start),
       rawEnd: code(row.end),
       timezone: text(row.timezone),
+      userId: id(row.user) ?? id(user.id),
       contactName:
         text(stamp.contact_name) ?? text(stamp.contactName) ?? name(row.user),
       contactEmail:
@@ -75,6 +76,8 @@ export function normalizeCalendar(
       projectName,
       projectCode: code(stamp.project_code) ?? code(project.code),
       serviceName,
+      // The administrator confirmed service 29 is the instructional Class service.
+      isClass: (id(row.service) ?? id(record(row.service).id)) === 29,
       bookingId: id(row.booking) ?? id(record(row.booking).id),
       sessionType: code(row.type),
       bookingType: code(row.btype),

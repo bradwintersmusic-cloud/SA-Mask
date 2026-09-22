@@ -1,14 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { BatchConfirmationModal } from "@/components/ui/BatchConfirmationModal";
+import { removeStudents } from "./actions";
 import { classEmail } from "@/lib/email/class-email";
 import type { StudioClass, ClassRoster } from "@/lib/studio-assistant/enrollment-types";
 import styles from "./class-actions.module.css";
-export function ClassActions({ course, roster }: { course: StudioClass; roster: ClassRoster }) {
+export function ClassActions({ course, roster, writesEnabled, busy, onRefresh, onResult, onBusy }: { course: StudioClass; roster: ClassRoster; writesEnabled: boolean; busy: boolean; onRefresh: () => Promise<void>; onResult: (message: string) => void; onBusy: (busy: boolean) => void }) {
   const [preview, setPreview] = useState(false);
-  const [remove, setRemove] = useState(false);
+  const [remove, setRemove] = useState<number[] | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const removalLock = useRef(false);
+  const students = roster.users.filter(user => user.role === "student");
+  async function executeRemoval() {
+    if (!remove?.length || removalLock.current || !writesEnabled) return;
+    removalLock.current = true; setRemoving(true); onBusy(true);
+    try {
+      const result = await removeStudents(course.id, remove);
+      onResult(result.data ? `${result.data.removedUserIds.length} students removed. ${result.data.failures.length} removals could not be confirmed.${result.data.failures.length ? " Failed member IDs: " + result.data.failures.map(item => item.userId).join(", ") : ""}` : result.error ?? "Removal unavailable.");
+      setRemove(null);
+      await onRefresh();
+    } catch { onResult("Removal could not be confirmed. Refresh before retrying."); }
+    finally { removalLock.current = false; setRemoving(false); onBusy(false); }
+  }
   const [feedback, setFeedback] = useState("");
   const email = classEmail(course, roster.users);
   const name = course.name ?? course.code ?? `Class #${course.id}`;
@@ -19,8 +34,9 @@ export function ClassActions({ course, roster }: { course: StudioClass; roster: 
   return <>
     <div className={styles.actions}>
       <Button variant="secondary" disabled={!email.recipients.length} onClick={() => { setFeedback(""); setPreview(true); }}>Email Class ({email.recipients.length})</Button>
-      <Button variant="danger" disabled={!roster.users.length} onClick={() => setRemove(true)}>Remove All Students</Button>
+      <Button variant="danger" disabled={!writesEnabled || busy || removing || !students.length} onClick={() => setRemove(students.map(user => user.id))}>Remove All Students</Button>
     </div>
+    {roster.users.some(user => user.role === "unknown") && <p>Members with unknown roles are excluded from Remove All Students.</p>}
     {!email.recipients.length && <p>No enrolled students have valid email addresses.</p>}
     {preview && <Modal open onClose={() => setPreview(false)} title={`Email ${name}`} description="Open a draft in your default mail application. You review and send it there; this dashboard never sends email.">
       <p><strong>{email.recipients.length} recipients · BCC</strong></p>
@@ -35,6 +51,6 @@ export function ClassActions({ course, roster }: { course: StudioClass; roster: 
         <Button onClick={() => { window.location.href = email.mailto; }}>Open Draft in Mail</Button>
       </div>
     </Modal>}
-    {remove && <BatchConfirmationModal title="Remove all students?" description={`Remove every enrolled student from ${name}. No other class is affected.`} affectedCount={roster.users.length} actionLabel={`Remove ${roster.users.length} Students`} destructive acknowledgement="I understand this will remove all students from this class." blockedReason="Enrollment changes are disabled while Studio Assistant is in Read Only mode. The member removal endpoint is also unconfirmed." onCancel={() => setRemove(false)} />}
+    {remove && <BatchConfirmationModal title="Remove all students?" description={`Remove every enrolled student from ${name}. No other class is affected.`} affectedCount={remove.length} actionLabel={`Remove ${remove.length} Students`} loading={removing} onConfirm={executeRemoval} destructive acknowledgement="I understand this will remove all students from this class." blockedReason={writesEnabled ? undefined : "Enrollment changes disabled"} onCancel={() => setRemove(null)} />}
   </>;
 }

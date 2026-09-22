@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { calendarQueryDate, calendarQueryFilters, type CalendarQuery } from "@/lib/calendar/query";
 import { getAllFacilityCalendars } from "@/lib/studio-assistant/sessions";
 import { CalendarWorkspace } from "./CalendarWorkspace";
-export const metadata: Metadata = { title: "Calendar" };
+export const metadata: Metadata = { title: "Schedule" };
 export const dynamic = "force-dynamic";
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<CalendarQuery> }) {
   const query = await searchParams;

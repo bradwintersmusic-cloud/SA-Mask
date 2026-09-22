@@ -58,9 +58,10 @@ export function createAdapter(
       "requests",
       "session-normalization",
       "sessions",
+      "session-deletion",
       "enrollment",
     ].map((name) => load(`src/lib/studio-assistant/${name}.ts`)),
-    ...["time", "display", "timeline", "query"].map((name) =>
+    ...["time", "display", "timeline", "query", "session-search", "duration"].map((name) =>
       load(`src/lib/calendar/${name}.ts`),
     ),
   );

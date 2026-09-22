@@ -18,9 +18,9 @@ test('empty and long lists retain accurate counts without truncation',()=>{
  const result=exports.classEmail({id:1,name:'Class'},Array.from({length:200},(_,i)=>({email:`student${i}@example.test`})));
  assert.equal(result.recipients.length,200);assert.equal(result.unusuallyLong,true);
 });
-test('remove all refuses before any fetch, including when its endpoint remains unresolved',async()=>{
+test('remove all refuses before any fetch when its capability is disabled',async()=>{
  for(const value of ['false','true']) {
  let calls=0;const api=createAdapter(()=>{calls++;throw Error('No fetch');},{STUDIO_ASSISTANT_WRITES_ENABLED:value},false);
- await assert.rejects(api.removeAllClassMembers(1),value==='true'?/unconfirmed/:/writes are disabled/);assert.equal(calls,0);
+ await assert.rejects(api.removeAllClassMembers(1),value==='true'?/writes are disabled/:/writes are disabled/);assert.equal(calls,0);
  }
 });

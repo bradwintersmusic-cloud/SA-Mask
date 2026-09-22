@@ -1,5 +1,5 @@
 import "server-only";
-import { assertStudioAssistantWritesEnabled } from "./write-safety";
+import { assertMutationAllowed } from "./write-safety";
 import { getAccessToken, invalidateAccessToken, STUDIO_ASSISTANT_BASE_URL } from "./auth";
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
@@ -12,7 +12,7 @@ export function studioAssistantFetch(path: string, options: Omit<RequestOptions,
 }
 
 export async function studioAssistantMutation(path: string, options: RequestOptions): Promise<unknown> {
-  assertStudioAssistantWritesEnabled();
+  assertMutationAllowed(path, options.method, options.body);
   return executeRequest(path, options);
 }
 

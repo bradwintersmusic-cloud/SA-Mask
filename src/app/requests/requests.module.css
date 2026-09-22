@@ -122,7 +122,7 @@
   width: 24%;
 }
 .table td {
-  padding: 14px 12px;
+  padding: 11px 12px;
   border-top: 1px solid var(--border);
   vertical-align: top;
   overflow-wrap: anywhere;
@@ -296,3 +296,26 @@
     font-size: 9px;
   }
 }
+
+.filters button { background:var(--control-fill); box-shadow:var(--control-shadow); transition:background .14s,border-color .14s; }
+.filters button:hover { border-color:var(--border-active); }
+.actionBar { background:var(--panel-fill); box-shadow:var(--shadow),inset 0 1px 0 var(--edge-highlight); }
+.desktopList,.requestCard { box-shadow:var(--shadow); border-top-color:var(--border-active); }
+.table th { font:10px var(--font-mono); text-transform:uppercase; letter-spacing:.06em; padding-block:11px; }
+.table td { transition:background .14s; }
+.table tr[data-selected="true"] td:first-child { box-shadow:inset 3px 0 var(--accent); }
+.requestCard { background:var(--panel-fill); }
+.requestCard[data-selected="true"] { border-color:var(--accent); box-shadow:inset 3px 0 var(--accent),var(--shadow); }
+.cardTitle strong { color:var(--text-primary); }
+.queueNote { padding-inline:2px; }
+.empty { background:var(--panel-fill); padding:30px 20px; }
+.quickActions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 90px; }
+.quickActions button { width: 42px; min-height: 42px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-1); font-size: 20px; cursor: pointer; transition: background .15s, border-color .15s; }
+.approveQuick { color: var(--success); }
+.denyQuick { color: var(--danger); }
+.approveQuick:hover:not(:disabled) { background: var(--success-soft); border-color: var(--success); }
+.denyQuick:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
+.quickActions button:disabled { opacity: .45; cursor: not-allowed; }
+.quickActions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.quickActions span { font-size: 12px; }
+.rowError { flex-basis: 100%; color: var(--danger); overflow-wrap: anywhere; }

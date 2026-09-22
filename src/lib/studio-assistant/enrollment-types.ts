@@ -22,9 +22,10 @@ export type ClassEnrollment = {
     classId: number;
     state: "enrolled" | "not-enrolled" | "unknown";
 };
+export type ClassMember = StudioUser & { role: "admin" | "teacher" | "student" | "unknown" };
 export type ClassRoster = {
     classId: number;
-    users: StudioUser[];
+    users: ClassMember[];
 };
 export type UserEnrollment = {
     userId: number;

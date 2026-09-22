@@ -1,15 +1,19 @@
 "use server";
-import { getAllInternalRequests } from "@/lib/studio-assistant/requests";
+import { revalidatePath } from "next/cache";
+import { getAllInternalRequests, processInternalRequests } from "@/lib/studio-assistant/requests";
 import type { BatchRequestResult } from "@/lib/studio-assistant/types";
 export async function refreshRequests() {
   return getAllInternalRequests();
 }
-// Mutation architecture stays in the adapter, but the UI boundary is dormant.
-export async function updateRequests(
-  ..._input: unknown[]
-): Promise<
+export async function updateRequests(action: unknown, selection: unknown): Promise<
   { data: BatchRequestResult; error?: never } | { error: string; data?: never }
 > {
-  void _input;
-  return { error: "Production is read only. Request actions are disabled." };
+  try {
+    const data = await processInternalRequests(action, selection);
+    revalidatePath("/");
+    revalidatePath("/requests");
+    return { data };
+  } catch {
+    return { error: "Request update unavailable. Refresh and check request permissions before retrying." };
+  }
 }

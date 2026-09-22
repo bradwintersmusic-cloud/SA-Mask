@@ -1,4 +1,4 @@
-import type { InternalRequest } from "@/lib/studio-assistant/types";
+import type { InternalRequest, RequestAction } from "@/lib/studio-assistant/types";
 import {
   requestContext,
   requestDate,
@@ -11,8 +11,22 @@ type Props = {
   selected: Set<string>;
   disabled: boolean;
   onToggle: (key: string) => void;
+  onAction: (request: InternalRequest, action: RequestAction) => void;
+  pending: Set<string>;
+  errors: Record<string, string>;
+  actionsDisabled: boolean;
 };
-export function RequestList({ requests, selected, disabled, onToggle }: Props) {
+export function RequestList({ requests, selected, disabled, onToggle, onAction, pending, errors, actionsDisabled }: Props) {
+  function actions(request: InternalRequest) {
+    const key = requestKey(request);
+    const working = pending.has(key);
+    return <div className={styles.quickActions}>
+      <button type="button" className={styles.approveQuick} title="Approve" aria-label={`Approve request #${request.id}`} disabled={actionsDisabled || working} onClick={() => onAction(request, "approve")}>✓</button>
+      <button type="button" className={styles.denyQuick} title="Deny" aria-label={`Deny request #${request.id}`} disabled={actionsDisabled || working} onClick={() => onAction(request, "deny")}>×</button>
+      {working && <span role="status">Updating…</span>}
+      {errors[key] && <span className={styles.rowError} role="alert">{errors[key]}</span>}
+    </div>;
+  }
   function checkbox(request: InternalRequest) {
     const key = requestKey(request);
     return (
@@ -46,7 +60,7 @@ export function RequestList({ requests, selected, disabled, onToggle }: Props) {
               <th scope="col">Requester</th>
               <th scope="col">Facility / room</th>
               <th scope="col">Date / time</th>
-              <th scope="col">Project / session</th>
+              <th scope="col">Project / session</th><th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -73,7 +87,7 @@ export function RequestList({ requests, selected, disabled, onToggle }: Props) {
                     {requestTime(request)}
                   </span>
                 </td>
-                <td>{requestContext(request)}</td>
+                <td>{requestContext(request)}</td><td>{actions(request)}</td>
               </tr>
             ))}
           </tbody>
@@ -117,6 +131,7 @@ export function RequestList({ requests, selected, disabled, onToggle }: Props) {
                 <dd>{requestContext(request)}</dd>
               </div>
             </dl>
+            {actions(request)}
           </li>
         ))}
       </ul>

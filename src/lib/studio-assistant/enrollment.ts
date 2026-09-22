@@ -1,8 +1,8 @@
 import "server-only";
 import { school } from "@/config/school";
 import { studioAssistantFetch, studioAssistantMutation } from "./client";
-import { assertStudioAssistantWritesEnabled } from "./write-safety";
-import type { StudioUser, StudioClass, Directory, ClassRoster, UserEnrollment } from "./enrollment-types";
+import { assertEnrollmentWritesEnabled } from "./write-safety";
+import type { StudioUser, StudioClass, Directory, ClassRoster, UserEnrollment, ClassMember } from "./enrollment-types";
 const TTL = 5 * 60000;
 type Entry = {
     expires: number;
@@ -40,6 +40,13 @@ const compare = (a: string | null, b: string | null) => (a ?? "").localeCompare(
 export function normalizeUsers(raw: unknown): StudioUser[] {
     return items(raw).map(row => ({ id: row.id as number, name: text(row.name), email: text(row.email), username: text(row.username), code: text(row.code) })).sort((a, b) => compare(a.name, b.name) || compare(a.email, b.email));
 }
+export function normalizeClassMembers(raw: unknown): ClassMember[] {
+    const permissions = new Map(items(raw).map(row => [row.id, row.prm]));
+    const rank = { admin: 0, teacher: 1, student: 2, unknown: 3 };
+    // Confirmed by the administrator: prm 2=Admin, 1=Teacher, 0=Student.
+    return normalizeUsers(raw).map((user): ClassMember => ({ ...user, role: permissions.get(user.id) === 2 ? "admin" : permissions.get(user.id) === 1 ? "teacher" : permissions.get(user.id) === 0 ? "student" : "unknown" }))
+      .sort((a, b) => rank[a.role] - rank[b.role] || compare(a.name ?? a.username ?? a.email, b.name ?? b.username ?? b.email) || a.id - b.id);
+}
 export function normalizeClasses(raw: unknown): StudioClass[] {
     return items(raw).map(row => ({ id: row.id as number, name: text(row.name), code: text(row.code), snippet: text(row.snippet) })).sort((a, b) => compare(a.code, b.code) || compare(a.name, b.name));
 }
@@ -52,7 +59,7 @@ export async function getDirectory(): Promise<Directory> {
 export async function getClassRoster(classId: number): Promise<ClassRoster> {
     if (!(await getSchoolClasses()).some(cls => cls.id === classId))
         throw new Error("Unknown school class.");
-    return cached(`roster:${classId}`, async () => ({ classId, users: normalizeUsers(await studioAssistantFetch(`/api/class/${classId}/member`)) }));
+    return cached(`roster:${classId}`, async () => ({ classId, users: normalizeClassMembers(await studioAssistantFetch(`/api/class/${classId}/member`)) }));
 }
 async function enrollmentIndex() {
     return cached("index", async () => {
@@ -84,29 +91,59 @@ export async function getUserEnrollment(userId: number): Promise<UserEnrollment>
     const index = await enrollmentIndex();
     return { userId, failedClassIds: index.failedClassIds, classes: index.classes.map(cls => ({ classId: cls.id, state: index.failedClassIds.includes(cls.id) ? "unknown" : index.membership.get(userId)?.has(cls.id) ? "enrolled" : "not-enrolled" })) };
 }
-// Dormant future operation; no UI or server action invokes it.
+function positiveId(value: number) {
+    if (!Number.isSafeInteger(value) || value <= 0) throw new Error("Invalid enrollment identifier.");
+}
+function confirmed(response: unknown, type?: string) {
+    if (!response || typeof response !== "object" || !("success" in response) || response.success !== true || (type && (!("type" in response) || response.type !== type)))
+        throw new Error("Studio Assistant did not confirm the enrollment update. Refresh before retrying.");
+}
 export async function addClassMember(classId: number, user: StudioUser): Promise<void> {
-    assertStudioAssistantWritesEnabled();
-    if (!Number.isSafeInteger(classId) || classId <= 0 || !user.email)
-        throw new Error("A class and member email are required.");
-    await studioAssistantMutation(`/api/class/${classId}/member`, { method: "POST", body: { email: user.email, uname: user.name ?? user.username ?? "" } });
+    assertEnrollmentWritesEnabled();
+    positiveId(classId); positiveId(user.id);
+    if (!(await getSchoolClasses()).some(cls => cls.id === classId)) throw new Error("Unknown school class.");
+    const member = (await getSchoolUsers()).find(member => member.id === user.id);
+    if (!member?.email) throw new Error("A school member email is required.");
+    try {
+        confirmed(await studioAssistantMutation(`/api/class/${classId}/member`, { method: "POST", body: { email: member.email, uname: member.name ?? member.username ?? "" } }));
+    } finally { invalidateEnrollmentCache(); }
 }
-export async function removeClassMember(classId: number, userId: number): Promise<never> {
-    assertStudioAssistantWritesEnabled();
-    void classId;
-    void userId;
-    throw new Error("Remove enrollment endpoint is unconfirmed. No request was sent.");
+async function deleteMember(classId: number, userId: number): Promise<void> {
+    assertEnrollmentWritesEnabled();
+    positiveId(classId); positiveId(userId);
+    try { confirmed(await studioAssistantMutation(`/api/class/${classId}/member/${userId}`, { method: "DELETE" }), "DELETED"); }
+    finally { invalidateEnrollmentCache(); }
 }
-
+export async function removeClassMember(classId: number, userId: number): Promise<void> {
+    assertEnrollmentWritesEnabled();
+    positiveId(classId); positiveId(userId);
+    invalidateEnrollmentCache();
+    const roster = await getClassRoster(classId);
+    if (!roster.users.some(user => user.id === userId)) throw new Error("Member is not in the current class roster.");
+    await deleteMember(classId, userId);
+}
 export type RemovalBatchResult = {
     removedUserIds: number[];
     failures: { userId: number; message: string }[];
 };
-// Future implementation: fresh roster -> three-worker individual removals ->
-// per-member settled results. Do not fetch a roster or invent success until the
-// individual endpoint is confirmed. No guessed bulk-delete endpoint exists.
-export async function removeAllClassMembers(classId: number): Promise<RemovalBatchResult> {
-    assertStudioAssistantWritesEnabled();
-    void classId;
-    throw new Error("Batch removal is unavailable: the individual removal endpoint is unconfirmed. No request was sent.");
+export async function removeAllClassMembers(classId: number, selectedIds: number[]): Promise<RemovalBatchResult> {
+    assertEnrollmentWritesEnabled();
+    positiveId(classId);
+    if (!Array.isArray(selectedIds) || !selectedIds.length) throw new Error("Explicit student selection is required.");
+    selectedIds.forEach(positiveId);
+    const ids = [...new Set(selectedIds)];
+    invalidateEnrollmentCache();
+    const roster = await getClassRoster(classId);
+    const students = new Set(roster.users.filter(member => member.role === "student").map(member => member.id));
+    const result: RemovalBatchResult = { removedUserIds: [], failures: [] };
+    let next = 0;
+    await Promise.all(Array.from({ length: Math.min(3, ids.length) }, async () => {
+        while (next < ids.length) {
+            const userId = ids[next++];
+            if (!students.has(userId)) { result.failures.push({ userId, message: "Not a confirmed student in the current roster; skipped." }); continue; }
+            try { await deleteMember(classId, userId); result.removedUserIds.push(userId); }
+            catch { result.failures.push({ userId, message: "Removal could not be confirmed. Refresh before retrying." }); }
+        }
+    }));
+    return result;
 }

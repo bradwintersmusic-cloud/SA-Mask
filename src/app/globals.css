@@ -1,17 +1,17 @@
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0c1017;
-  --surface-1: #121822;
-  --surface-2: #19212e;
-  --surface-3: #222d3d;
+  --bg: #0d0e14;
+  --surface-1: #151720;
+  --surface-2: #1c202c;
+  --surface-3: #282e3d;
   --border: #293342;
-  --text-primary: #f0f2f5;
+  --text-primary: #eeece7;
   --text-secondary: #adb8c9;
   --text-muted: #8a98ad;
-  --accent: #8aafff;
-  --accent-soft: #1c2d49;
-  --accent-strong: #416ccd;
+  --accent: #d2b37d;
+  --accent-soft: #2c2924;
+  --accent-strong: #876735;
   --on-accent: #ffffff;
   --success: #80c9ab;
   --success-soft: #19332c;
@@ -20,7 +20,7 @@
   --danger: #ff9e9e;
   --danger-soft: #412329;
   --danger-solid: #ae293a;
-  --shadow: 0 8px 28px #00000016;
+  --shadow: 0 8px 24px #00000024, 0 2px 4px #00000018;
   --overlay: #050a13b8;
   --brand-secondary: #8aafff;
   --bg-glow: #233b6424;
@@ -32,7 +32,7 @@
     var(--surface-2)
   );
   --nav-active-text: var(--accent);
-  --nav-accent-line: transparent;
+  --nav-accent-line: var(--accent);
   --shell-accent-line: transparent;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -174,7 +174,7 @@ svg {
 }
 .stack {
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 .muted {
   color: var(--text-muted);
@@ -196,3 +196,33 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+/* Shared finish tokens: tinted edges, raised controls, recessed fields. */
+:root {
+  --edge-highlight: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  --panel-fill: linear-gradient(145deg, color-mix(in srgb, var(--surface-2) 40%, var(--surface-1)), var(--surface-1) 65%);
+  --control-fill: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  --control-shadow: inset 0 1px 0 var(--edge-highlight), 0 2px 3px #00000018;
+  --input-shadow: inset 0 2px 4px #00000018;
+  --border-active: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+[data-theme="light"], [data-theme="belmont"] {
+  --shadow: 0 5px 18px #1727410c, 0 1px 3px #1727410a;
+  --edge-highlight: #ffffffb8;
+  --control-fill: linear-gradient(180deg, var(--surface-1), var(--surface-2));
+  --control-shadow: inset 0 1px 0 #ffffff, 0 2px 3px #17274110;
+  --input-shadow: inset 0 1px 3px #1727410b;
+  --nav-accent-line: var(--accent);
+}
+[data-theme="belmont"] { --nav-accent-line: var(--brand-secondary); }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  box-shadow: var(--input-shadow);
+  transition: border-color .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+input:not([type="checkbox"]):not([type="radio"]):hover, select:hover, textarea:hover { border-color:var(--border-active); }
+input:not([type="checkbox"]):not([type="radio"]):focus-visible, select:focus-visible, textarea:focus-visible {
+  outline:2px solid var(--accent); outline-offset:2px;
+  border-color:var(--accent); box-shadow:var(--input-shadow),0 0 0 4px color-mix(in srgb,var(--accent) 12%,transparent);
+}
+button:disabled { opacity:.58; }
+::selection { background:var(--accent-soft); color:var(--text-primary); }

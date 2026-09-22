@@ -77,3 +77,9 @@ export function sessionTime(value: string | null) {
 export function sessionDateTime(value: string | null) {
   return value ? full.format(new Date(value)) : null;
 }
+
+export function centralDateRange(from: string, through: string) {
+  if (!validDate(from) || !validDate(through) || from < "1900-01-01" || through > "9998-12-31" || through < from)
+    throw new Error("Choose a valid date range; the end must be on or after the start.");
+  return { start: centralDayRange(from).start, end: centralDayRange(through).end };
+}

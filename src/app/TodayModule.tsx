@@ -36,7 +36,7 @@ export function TodayModule({today,calendar,requests}:{today:string;calendar:Cal
             const failed=!calendar||calendar.issues.some(issue=>issue.facilityId===facility.studioAssistantId);
             const total=rooms.reduce((sum,room)=>sum+room.sessions.length,0);
             return <section className={styles.facility} key={facility.key} aria-label={`${facility.name} activity`}><div className={styles.facilityHeading}><h4>{facility.name}</h4><span>{failed?"Unavailable":`${total} sessions`}</span></div>
-              {rooms.map(room=><Link className={styles.studioRow} key={room.key} prefetch={false} href={calendarLink(today,facility.studioAssistantId,room.sessions[0].roomId)} aria-label={`${facility.name}, ${room.name}, ${room.sessions.length} sessions. Open calendar.`}><div><span>{room.name}</span><div className={styles.rail} aria-hidden="true"><i style={{width:`${room.sessions.length/activity.maxCount*100}%`}} /></div></div><strong>{room.sessions.length}</strong><span className={styles.arrow} aria-hidden="true">↗</span></Link>)}
+              {rooms.map(room=><Link className={styles.studioRow} key={room.key} prefetch={false} href={calendarLink(today,facility.studioAssistantId,room.sessions[0].roomId)} aria-label={`${facility.name}, ${room.name}, ${room.sessions.length} sessions. Open schedule.`}><div><span>{room.name}</span><div className={styles.rail} aria-hidden="true"><i style={{width:`${room.sessions.length/activity.maxCount*100}%`}} /></div></div><strong>{room.sessions.length}</strong><span className={styles.arrow} aria-hidden="true">↗</span></Link>)}
               {!rooms.length&&<p className={styles.quiet}>{failed?"Could not load this facility. Refresh to retry.":"No sessions today."}</p>}
             </section>;
           })}
@@ -52,7 +52,7 @@ export function TodayModule({today,calendar,requests}:{today:string;calendar:Cal
         </section>
         <MiniCalendar key={today} today={today}/>
       </div>
-      <footer className={styles.consoleFooter}><span>Studio Assistant · Live source</span><span>Production / Read only</span></footer>
+      <footer className={styles.consoleFooter}><span>Studio Assistant · Live source</span><span>Production</span></footer>
     </section>
   </>;
 }
