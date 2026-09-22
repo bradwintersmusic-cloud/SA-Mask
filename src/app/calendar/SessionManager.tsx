@@ -15,8 +15,9 @@ import { ScheduleViewSwitch } from "./ScheduleViewSwitch";
 import { SessionDetailsModal } from "./SessionDetailsModal";
 import { deleteSelectedSessions } from "./actions";
 import styles from "./session-manager.module.css";
-export function SessionManager({ initialSnapshot, initialFacility, initialStudio, onTimeline }: {
+export function SessionManager({ initialSnapshot, initialFacility, initialStudio, onTimeline, deleteEnabled }: {
     initialSnapshot: CalendarSnapshot;
+    deleteEnabled: boolean;
     initialFacility: string;
     initialStudio: string;
     onTimeline: (day: string) => void;
@@ -40,6 +41,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
     const [error, setError] = useState("");
     const [resultMessage, setResultMessage] = useState("");
     const [deleting, setDeleting] = useState(false);
+    const deletionLock = useRef(false);
     const controller = useRef<AbortController | null>(null);
     useEffect(() => {
         const request = new AbortController();
@@ -88,16 +90,20 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
                 setBusy(false);
         }
     }
-    // Dormant while the modal's read-only block is present. Never infer targets from filters.
+    // Capture exact confirmed records; never infer targets from filters.
     async function confirmDeletion() {
-        if (!preview?.length)
+        if (!deleteEnabled || !preview?.length || deletionLock.current)
             return;
         const records = [...preview];
+        deletionLock.current = true;
         setDeleting(true);
+        setResultMessage("");
         try {
             const outcome = await deleteSelectedSessions(records.map(session => ({ facilityId: session.facilityId, sessionId: session.id! })));
             if (outcome.error) {
                 setResultMessage(outcome.error);
+                setPreview(null);
+                await refresh();
                 return;
             }
             const results = outcome.results ?? [];
@@ -105,8 +111,12 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
             setResultMessage(`${results.filter(result => result.success).length} sessions deleted. ${failures.length} could not be deleted.${failures.length ? " Failed session IDs: " + failures.map(result => `${result.facilityId}:${result.sessionId}`).join(", ") : ""}`);
             await refresh();
         }
-        catch { setResultMessage("Deletion could not be confirmed. Refresh before retrying."); }
+        catch {
+            setResultMessage("Deletion could not be confirmed. Refresh before retrying.");
+            await refresh();
+        }
         finally {
+            deletionLock.current = false;
             setDeleting(false);
         }
     }
@@ -135,9 +145,9 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
         void refresh(today, today);
     }
     return <>
-    <PageHeader title="Schedule" description="Studio schedules · Central Time" action={<Button variant="secondary" disabled={busy} onClick={() => refresh()}>Refresh</Button>}/>
-    <div className={styles.workspace}>
-      <div className={styles.toolbar}><ScheduleViewSwitch view="list" onView={() => onTimeline(applied[0])} /><span>Session deletion disabled</span></div>
+    <PageHeader title="Schedule" description="Studio schedules · Central Time" action={<Button variant="secondary" disabled={busy || deleting} onClick={() => refresh()}>Refresh</Button>}/>
+    <div className={styles.workspace} inert={deleting}>
+      <div className={styles.toolbar}><ScheduleViewSwitch view="list" onView={() => onTimeline(applied[0])} />{!deleteEnabled && <span>Session deletion disabled</span>}</div>
       <section className={styles.filters} aria-label="Session filters">
         <label>Start date<input type="date" value={from} onChange={event => { clearSelection(); setError(""); setFrom(event.target.value); }}/></label>
         <label>End date<input type="date" value={through} onChange={event => { clearSelection(); setError(""); setThrough(event.target.value); }}/></label>
@@ -161,7 +171,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
         <div className={styles.toolbar}>
           <label><input type="checkbox" aria-label="Select all displayed sessions" checked={allSelected} disabled={!selectable.length} ref={node => { if (node)
             node.indeterminate = selected.size > 0 && !allSelected; }} onChange={() => setSelected(allSelected ? new Set() : new Set(selectable.map(session => session.key)))}/> Select All</label>
-          <span>{visible.length} matching · {selected.size} selected{snapshot.issues.length ? " · Partial or unavailable data" : ""}</span><Button variant="ghost" disabled={!selected.size} onClick={clearSelection}>Clear selection</Button><Button variant="danger" disabled={!selected.size} onClick={() => setPreview(visible.filter(session => selected.has(session.key)))}>Delete Selected ({selected.size})</Button>
+          <span>{visible.length} matching · {selected.size} selected{snapshot.issues.length ? " · Partial or unavailable data" : ""}</span><Button variant="ghost" disabled={!selected.size} onClick={clearSelection}>Clear selection</Button><Button variant="danger" disabled={!deleteEnabled || deleting || !selected.size} onClick={() => setPreview(visible.filter(session => selected.has(session.key)))}>Delete Selected ({selected.size})</Button>
         </div>
         {visible.length !== selectable.length && <p>Sessions with missing or duplicate identifiers can be inspected but cannot be selected for deletion.</p>}
         {!visible.length && <p className={styles.empty}>{snapshot.issues.length ? "Data unavailable or incomplete. Resolve the reported errors and refresh." : "No sessions match these filters."}</p>}
@@ -172,8 +182,8 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
       </>}
     </div>
     <SessionDetailsModal session={detail} onClose={() => setDetail(null)}/>
-    {preview && <BatchConfirmationModal title="Delete selected sessions?" description="Review the exact sessions selected for this action." affectedCount={preview.length} loading={deleting} onConfirm={confirmDeletion} actionLabel="Delete sessions" destructive acknowledgement="I understand these sessions would be permanently deleted." blockedReason="Session deletion disabled. No sessions will be changed." onCancel={() => setPreview(null)}>
-      <div className={styles.preview}>{preview.map(session => <div key={session.key}><strong>{sessionLabel(session)}</strong><p>{session.start ? centralDate(new Date(session.start)) : "Date not provided"} · {sessionRange(session)}</p><p>{session.facilityName} · {session.roomName ?? "Studio not provided"} · {session.contactName ?? "Contact not provided"}</p><small>Session #{session.id}</small></div>)}</div>
+    {preview && <BatchConfirmationModal title="Delete selected sessions?" description="Review the exact sessions selected for this action." affectedCount={preview.length} loading={deleting} onConfirm={confirmDeletion} actionLabel="Delete sessions" destructive acknowledgement="I understand these sessions would be permanently deleted." blockedReason={deleteEnabled ? undefined : "Session deletion disabled. No sessions will be changed."} onCancel={() => setPreview(null)}>
+      <div className={styles.preview}>{preview.map(session => <div key={session.key}><strong>{sessionLabel(session)} {session.isClass && <CategoryChip kind="class" />}</strong><p>{session.start ? centralDate(new Date(session.start)) : "Date not provided"} · {sessionRange(session)}</p><p>{session.facilityName} · {session.roomName ?? "Studio not provided"} · {session.contactName ?? "Contact not provided"}</p><small>Session #{session.id}</small></div>)}</div>
     </BatchConfirmationModal>}
   </>;
 }

@@ -12,6 +12,9 @@ export function assertInternalRequestWritesEnabled(): void {
   assertStudioAssistantWritesEnabled();
   if (!internalRequestWritesEnabled()) throw new Error("Internal Request writes are disabled.");
 }
+export function sessionDeleteEnabled(): boolean {
+  return studioAssistantWritesEnabled() && process.env.STUDIO_ASSISTANT_SESSION_DELETE_ENABLED === "true";
+}
 export function assertSessionDeleteEnabled(): void {
   assertStudioAssistantWritesEnabled();
   if (process.env.STUDIO_ASSISTANT_SESSION_DELETE_ENABLED !== "true") throw new Error("Session deletion writes are disabled.");

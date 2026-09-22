@@ -5,6 +5,6 @@ export async function deleteSelectedSessions(references: SessionReference[]) {
         return { results: await deleteSessions(references) };
     }
     catch {
-        return { error: "Session deletion is disabled." };
+        return { error: "Session deletion could not be started. Refresh and check deletion permissions before retrying." };
     }
 }

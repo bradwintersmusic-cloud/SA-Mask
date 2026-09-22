@@ -23,10 +23,12 @@ import { SessionDetailsModal } from "./SessionDetailsModal";
 import styles from "./calendar.module.css";
 export function CalendarWorkspace({
   initialSnapshot,
+  deleteEnabled,
   initialFacility = "all",
   initialStudio = "all",
 }: {
   initialSnapshot: CalendarSnapshot;
+  deleteEnabled: boolean;
   initialFacility?: string;
   initialStudio?: string;
 }) {
@@ -92,7 +94,7 @@ export function CalendarWorkspace({
     snapshot?.issues.filter(
       (issue) => facility === "all" || String(issue.facilityId) === facility,
     ) ?? [];
-  if (view === "list") return <SessionManager initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} initialStudio={studio} onTimeline={(day) => { setView("calendar"); void refresh(day); }} />;
+  if (view === "list") return <SessionManager deleteEnabled={deleteEnabled} initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} initialStudio={studio} onTimeline={(day) => { setView("calendar"); void refresh(day); }} />;
   return (
     <>
       <PageHeader

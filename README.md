@@ -20,7 +20,7 @@ On HTTP 401, reads invalidate only the rejected cached token, authenticate again
 ```dotenv
 STUDIO_ASSISTANT_WRITES_ENABLED=true
 STUDIO_ASSISTANT_INTERNAL_REQUEST_WRITES_ENABLED=true
-STUDIO_ASSISTANT_SESSION_DELETE_ENABLED=false
+STUDIO_ASSISTANT_SESSION_DELETE_ENABLED=true
 STUDIO_ASSISTANT_ENROLLMENT_WRITES_ENABLED=true
 ```
 
@@ -30,7 +30,7 @@ STUDIO_ASSISTANT_ENROLLMENT_WRITES_ENABLED=true
 
 Internal Requests offer direct per-item approve/deny buttons with synchronous duplicate-submission protection and row loading/errors. Batch actions require explicit confirmation, revalidate selections against current queues, and process at most three requests concurrently. Both paths use the same single-request services and refresh real pending data afterward. Success requires the existing `success: true` and `CONFIRMED`/`DECLINED` response contract. Failed operations remain actionable with safe feedback; interrupted responses are never automatically replayed. Overview remains navigation-only and refreshes its own queue data.
 
-Session deletion remains independently disabled. Enrollment has its own enabled capability. Their UI restrictions are contextual; global read-only labels have been removed. No deletion or enrollment endpoint was executed. Request success/failure and batch concurrency are tested with isolated synthetic fetch responses, never arbitrary live approvals/denials.
+Session deletion and enrollment each have their own enabled capability. Their UI restrictions are contextual; global read-only labels have been removed. No deletion or enrollment endpoint was executed. Request success/failure and batch concurrency are tested with isolated synthetic fetch responses, never arbitrary live approvals/denials.
 
 ## Calendar data flow
 
@@ -126,7 +126,7 @@ Copy Mailto Link uses the clipboard without opening Mail. The expandable link in
 
 All current and future multi-record Studio Assistant mutations must present `BatchConfirmationModal` before execution. Normal batch actions (including Requests approve/deny) require explicit Cancel/Confirm with the count and description. Destructive actions additionally require a labeled acknowledgement checkbox; the final action is disabled until acknowledged. No typed course-name confirmation is required. Mount a new modal per operation so acknowledgement cannot carry over. During processing, confirmation and cancellation are disabled. A blocked reason prevents confirmation regardless of acknowledgement. Confirmation is a UI safety layer and never replaces the server-side write guard.
 
-Batch request approve/deny uses this shared confirmation component. Individual quick actions execute directly. Session deletion uses destructive confirmation but remains disabled.
+Batch request approve/deny uses this shared confirmation component. Individual quick actions execute directly. Session deletion uses destructive confirmation with required acknowledgement.
 
 Verification for this enhancement: lint, typecheck, 21 isolated tests, build, and live preview using the 31-member AET 4480 roster. Verified BCC-only URL, actual subject/count, Copy feedback, scrollable mobile preview, full roster despite a filtered display, disabled destructive action before/after acknowledgement, acknowledgement reset on reopening, and Escape dismissal. No email client was launched, no email was sent, and no production-data mutation was executed. Draft launching is implemented but OS/mail-client behavior was intentionally not exercised. This earlier verification ran with writes disabled; current capabilities are documented above. Copy was verified by pasting into a local-only search field and comparing the result with the generated URL; the link inspector independently confirmed BCC count and subject.
 
@@ -158,7 +158,7 @@ Facility, studio, selected school user, and case-insensitive partial text filter
 
 Results group by Central date, facility, studio and start time. Overnight overlaps appear once; incomplete records remain inspectable. Selection clears on filter edits, date changes, refresh, and leaving List. Select All selects only displayed records with unambiguous IDs. Missing/duplicate IDs are visible but ineligible for deletion. The preview captures exact records rather than reinterpreting a query.
 
-Deletion is a **read-only demonstration**. The shared destructive confirmation requires acknowledgement and permanently blocks the final action in this demo. No optimistic removal or simulated success is used. Dormant server helpers check `assertSessionDeleteEnabled()` before authentication/network, validate explicit facility/session references, and compose the known individual DELETE endpoint with three workers and independent results. A future handler awaits actual responses, reports failures by ID, refreshes data, and clears selection. Session deletion remains disabled. No DELETE request was executed or success-tested; only guard rejection with zero network calls was tested.
+Session deletion is enabled behind both the global write flag and its capability flag. The destructive confirmation requires acknowledgement and captures exact selected facility/session IDs. The existing adapter sends `DELETE /api/studio/{facilityId}/session/{sessionId}` with no body, checks the guard before authentication/network, and requires a `DELETED` response. Batches use at most three workers, report independent failures by ID, clear selection, and refresh actual data. There is no optimistic removal or simulated success. Single-row selection uses the same confirmation. No real DELETE request was executed during implementation; live execution is reserved for manual testing.
 
 ### Enrollment activation, roles, and Class visibility
 
@@ -170,6 +170,6 @@ Remove All Students captures the exact student IDs shown in its destructive conf
 
 The administrator confirmed **session service ID 29 = Class**. Classification uses that ID, never a course name, session title, or artist/course association: regular student bookings can also reference a course. One shared Class chip appears in Schedule summaries, timeline blocks, and List rows without changing timeline geometry.
 
-List defaults to **Hide Classes on**. The filter composes with every existing filter and search; toggling it clears selection/confirmation. Counts and Select All derive only from the visible results. Clear Filters restores this safe default. Session deletion remains disabled and its confirmation stays blocked.
+List defaults to **Hide Classes on**. The filter composes with every existing filter and search; toggling it clears selection/confirmation. Counts and Select All derive only from the visible results. Clear Filters restores this safe default. Explicitly selected visible Class sessions may be deleted through the destructive confirmation; the preview retains their Class chip.
 
 Verification for this pass uses static/code checks, pure local normalization/filter tests, and read-only UI inspection. No enrollment POST, enrollment DELETE, session DELETE, or other production mutation was executed. Enrollment response handling is wired for the administrator's later targeted manual testing.
