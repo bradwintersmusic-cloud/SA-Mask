@@ -20,7 +20,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
     deleteEnabled: boolean;
     initialFacility: string;
     initialStudio: string;
-    onTimeline: (day: string) => void;
+    onTimeline: (day: string, view?: "calendar" | "timeline") => void;
 }) {
     const [snapshot, setSnapshot] = useState(initialSnapshot);
     const [from, setFrom] = useState(initialSnapshot.date);
@@ -147,7 +147,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
     return <>
     <PageHeader title="Schedule" description="Studio schedules · Central Time" action={<Button variant="secondary" disabled={busy || deleting} onClick={() => refresh()}>Refresh</Button>}/>
     <div className={styles.workspace} inert={deleting}>
-      <div className={styles.toolbar}><ScheduleViewSwitch view="list" onView={() => onTimeline(applied[0])} />{!deleteEnabled && <span>Session deletion disabled</span>}</div>
+      <div className={styles.toolbar}><ScheduleViewSwitch view="list" onView={view => onTimeline(applied[0], view === "timeline" ? "timeline" : "calendar")} />{!deleteEnabled && <span>Session deletion disabled</span>}</div>
       <section className={styles.filters} aria-label="Session filters">
         <label>Start date<input type="date" value={from} onChange={event => { clearSelection(); setError(""); setFrom(event.target.value); }}/></label>
         <label>End date<input type="date" value={through} onChange={event => { clearSelection(); setError(""); setThrough(event.target.value); }}/></label>

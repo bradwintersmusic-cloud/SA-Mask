@@ -14,7 +14,8 @@ import {
 } from "@/lib/calendar/display";
 import { validDate } from "@/lib/calendar/time";
 import { loadCalendar } from "@/lib/calendar/browser-client";
-import { ScheduleViewSwitch } from "./ScheduleViewSwitch";
+import { TimelineView } from "./TimelineView";
+import { ScheduleViewSwitch, type ScheduleView } from "./ScheduleViewSwitch";
 import { CalendarControls } from "./CalendarControls";
 import { SessionManager } from "./SessionManager";
 import { DailyList } from "./DailyList";
@@ -36,7 +37,7 @@ export function CalendarWorkspace({
     initialSnapshot,
   );
   const [date, setDate] = useState(initialSnapshot.date);
-  const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [view, setView] = useState<ScheduleView>("calendar");
   const [facility, setFacility] = useState(initialFacility);
   const [studio, setStudio] = useState(initialStudio);
   const [selected, setSelected] = useState<StudioSession | null>(null);
@@ -94,7 +95,8 @@ export function CalendarWorkspace({
     snapshot?.issues.filter(
       (issue) => facility === "all" || String(issue.facilityId) === facility,
     ) ?? [];
-  if (view === "list") return <SessionManager deleteEnabled={deleteEnabled} initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} initialStudio={studio} onTimeline={(day) => { setView("calendar"); void refresh(day); }} />;
+  if (view === "timeline") return <TimelineView initialDate={date} initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} onView={(next, day) => { if (day !== date) void refresh(day).then(() => setView(next)); else setView(next); }} />;
+  if (view === "list") return <SessionManager deleteEnabled={deleteEnabled} initialSnapshot={snapshot ?? initialSnapshot} initialFacility={facility} initialStudio={studio} onTimeline={(day, next = "calendar") => { if (next === "timeline") void refresh(day).then(() => setView(next)); else { setView(next); void refresh(day); } }} />;
   return (
     <>
       <PageHeader

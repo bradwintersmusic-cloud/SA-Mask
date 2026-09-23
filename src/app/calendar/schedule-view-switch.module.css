@@ -31,3 +31,8 @@
 }
 .switcher button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .switcher button { transition: none; } }
+
+@media (max-width: 480px) {
+  .switcher { max-width: 100%; }
+  .switcher button { min-width: 0; padding-inline: 12px; }
+}
