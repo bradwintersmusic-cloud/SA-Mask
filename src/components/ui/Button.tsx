@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 import styles from "./ui.module.css";
-type Variant = "primary" | "secondary" | "danger" | "ghost";
+type Variant = "primary" | "secondary" | "danger" | "ghost" | "success";
 export function buttonClass(variant: Variant = "primary") {
   return `${styles.button} ${styles[variant]}`;
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CategoryChip } from "@/components/ui/CategoryChip";
+import { BookingCategoryChip } from "@/components/ui/BookingCategoryChip";
+import { classifySession } from "@/lib/studio-assistant/session-classification";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { BatchConfirmationModal } from "@/components/ui/BatchConfirmationModal";
@@ -9,13 +10,14 @@ import type { StudioUser } from "@/lib/studio-assistant/enrollment-types";
 import { facilities } from "@/config/facilities";
 import { centralDate, centralDateRange } from "@/lib/calendar/time";
 import { loadCalendar } from "@/lib/calendar/browser-client";
-import { groupStudios, roomKey, sessionLabel, sessionRange } from "@/lib/calendar/display";
+import { groupStudios, roomLabel, roomKey, sessionLabel, sessionRange } from "@/lib/calendar/display";
 import { filterSessions, groupSessionDates, memberMatches, sessionReferenceKey } from "@/lib/calendar/session-search";
 import { ScheduleViewSwitch } from "./ScheduleViewSwitch";
 import { SessionDetailsModal } from "./SessionDetailsModal";
 import { deleteSelectedSessions } from "./actions";
 import styles from "./session-manager.module.css";
-export function SessionManager({ initialSnapshot, initialFacility, initialStudio, onTimeline, deleteEnabled }: {
+export function SessionManager({ initialSnapshot, initialFacility, initialStudio, onTimeline, deleteEnabled, onFacilityChange }: {
+    onFacilityChange?: (id: string) => void;
     initialSnapshot: CalendarSnapshot;
     deleteEnabled: boolean;
     initialFacility: string;
@@ -137,6 +139,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
         setFrom(today);
         setThrough(today);
         setFacility("all");
+        onFacilityChange?.("all");
         setStudio("all");
         setUser(null);
         setMemberQuery("");
@@ -153,7 +156,7 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
         <label>End date<input type="date" value={through} onChange={event => { clearSelection(); setError(""); setThrough(event.target.value); }}/></label>
         <Button variant="secondary" disabled={busy} onClick={() => refresh()}>Apply dates</Button>
         <Button variant="ghost" disabled={busy} onClick={() => { const today = centralDate(); setFrom(today); setThrough(today); void refresh(today, today); }}>Today</Button>
-        <label>Facility<select value={facility} onChange={event => { clearSelection(); setFacility(event.target.value); setStudio("all"); }}><option value="all">All facilities</option>{facilities.map(item => <option key={item.key} value={item.studioAssistantId}>{item.name}</option>)}</select></label>
+        <label>Facility<select value={facility} onChange={event => { clearSelection(); setFacility(event.target.value); onFacilityChange?.(event.target.value); setStudio("all"); }}><option value="all">All facilities</option>{facilities.map(item => <option key={item.key} value={item.studioAssistantId}>{item.name}</option>)}</select></label>
         <label>Studio<select value={studio} onChange={event => { clearSelection(); setStudio(event.target.value); }}><option value="all">All studios</option>{rooms.map(room => <option key={room.key} value={room.key}>{room.facilityName} · {room.name}</option>)}</select></label>
         <label>Search sessions<input type="search" value={query} placeholder="Contact, project, service, studio, notes…" onChange={event => { clearSelection(); setQuery(event.target.value); }}/></label>
         <div className={styles.member}><label>School user<input type="search" value={memberQuery} placeholder="Name or email" onChange={event => { clearSelection(); setUser(null); setMemberQuery(event.target.value); }}/></label>
@@ -175,15 +178,15 @@ export function SessionManager({ initialSnapshot, initialFacility, initialStudio
         </div>
         {visible.length !== selectable.length && <p>Sessions with missing or duplicate identifiers can be inspected but cannot be selected for deletion.</p>}
         {!visible.length && <p className={styles.empty}>{snapshot.issues.length ? "Data unavailable or incomplete. Resolve the reported errors and refresh." : "No sessions match these filters."}</p>}
-        {groupSessionDates(visible, from).map(([day, sessions]) => <section key={day} className={styles.day}><h2>{day}</h2>{[...new Set(sessions.map(session => session.facilityId))].sort().map(facilityId => <section key={facilityId}><h3>{sessions.find(session => session.facilityId === facilityId)?.facilityName}</h3>{groupStudios(sessions.filter(session => session.facilityId === facilityId)).map(room => <section key={room.key} className={styles.room}><h4>{room.name} <small>· {room.sessions.length}</small></h4>{room.sessions.map(session => <div className={styles.row} key={session.key}><label className={styles.selectTarget}><input type="checkbox" aria-label={`Select ${sessionLabel(session)} · ${session.contactName ?? "Contact not provided"} · ${room.name} · ${day} · ${sessionRange(session)}`} checked={selected.has(session.key)} disabled={!selectable.includes(session)} onChange={event => { const next = new Set(selected); if (event.target.checked)
+        {groupSessionDates(visible, from).map(([day, sessions]) => <section key={day} className={styles.day}><h2>{day}</h2>{[...new Set(sessions.map(session => session.facilityId))].sort().map(facilityId => <section key={facilityId}><h3>{sessions.find(session => session.facilityId === facilityId)?.facilityName}</h3>{groupStudios(sessions.filter(session => session.facilityId === facilityId)).map(room => <section key={room.key} className={styles.room}><h4>{room.name} <small>· {room.sessions.length} results</small></h4>{room.sessions.map(session => <div className={styles.row} data-category={classifySession(session)} key={session.key}><label className={styles.selectTarget}><input type="checkbox" aria-label={`Select ${sessionLabel(session)} · ${session.contactName ?? "Contact not provided"} · ${room.name} · ${day} · ${sessionRange(session)}`} checked={selected.has(session.key)} disabled={!selectable.includes(session)} onChange={event => { const next = new Set(selected); if (event.target.checked)
             next.add(session.key);
         else
-            next.delete(session.key); setSelected(next); }}/></label><button className={styles.session} onClick={() => setDetail(session)}><strong>{sessionLabel(session)} {session.isClass && <CategoryChip kind="class" />}</strong><span>{sessionRange(session)}</span><span>{session.contactName ?? "Contact not provided"} · {session.projectName ?? session.serviceName ?? "Project not provided"}</span></button></div>)}</section>)}</section>)}</section>)}
+            next.delete(session.key); setSelected(next); }}/></label><button className={styles.session} onClick={() => setDetail(session)}><strong>{sessionLabel(session)} <BookingCategoryChip session={session} /></strong><span>{sessionRange(session)}</span><span>{session.contactName ?? "Contact not provided"} · {session.projectName ?? session.serviceName ?? "Project not provided"}</span></button></div>)}</section>)}</section>)}</section>)}
       </>}
     </div>
     <SessionDetailsModal session={detail} onClose={() => setDetail(null)}/>
     {preview && <BatchConfirmationModal title="Delete selected sessions?" description="Review the exact sessions selected for this action." affectedCount={preview.length} loading={deleting} onConfirm={confirmDeletion} actionLabel="Delete sessions" destructive acknowledgement="I understand these sessions would be permanently deleted." blockedReason={deleteEnabled ? undefined : "Session deletion disabled. No sessions will be changed."} onCancel={() => setPreview(null)}>
-      <div className={styles.preview}>{preview.map(session => <div key={session.key}><strong>{sessionLabel(session)} {session.isClass && <CategoryChip kind="class" />}</strong><p>{session.start ? centralDate(new Date(session.start)) : "Date not provided"} · {sessionRange(session)}</p><p>{session.facilityName} · {session.roomName ?? "Studio not provided"} · {session.contactName ?? "Contact not provided"}</p><small>Session #{session.id}</small></div>)}</div>
+      <div className={styles.preview}>{preview.map(session => <div key={session.key}><strong>{sessionLabel(session)} <BookingCategoryChip session={session} /></strong><p>{session.start ? centralDate(new Date(session.start)) : "Date not provided"} · {sessionRange(session)}</p><p>{session.facilityName} · {roomLabel(session)} · {session.contactName ?? "Contact not provided"}</p><small>Session #{session.id}</small></div>)}</div>
     </BatchConfirmationModal>}
   </>;
 }

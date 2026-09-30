@@ -1,4 +1,5 @@
-import { CategoryChip } from "@/components/ui/CategoryChip";
+import { BookingCategoryChip } from "@/components/ui/BookingCategoryChip";
+import { classifySession } from "@/lib/studio-assistant/session-classification";
 import type { StudioSession } from "@/lib/studio-assistant/types";
 import {
   groupStudios,
@@ -46,13 +47,14 @@ export function DailyList({
                         <button
                           type="button"
                           className={styles.sessionRow}
+                          data-category={classifySession(session)}
                           onClick={() => onSelect(session)}
                         >
                           <span className={styles.time}>
                             {sessionRange(session)}
                           </span>
                           <span className={styles.rowBody}>
-                            <strong>{sessionLabel(session)} {session.isClass && <CategoryChip kind="class" />}</strong>
+                            <strong>{sessionLabel(session)} <BookingCategoryChip session={session} /></strong>
                             {session.contactName && (
                               <span>{session.contactName}</span>
                             )}

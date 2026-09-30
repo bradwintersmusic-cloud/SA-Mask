@@ -19,6 +19,7 @@ export type StudioSession = {
   projectId: number | null;
   projectName: string | null;
   projectCode: string | null;
+  serviceId: number | null;
   serviceName: string | null;
   isClass: boolean;
   bookingId: number | null;

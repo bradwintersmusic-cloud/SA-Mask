@@ -36,11 +36,29 @@ test('Timeline renders proportional overlapping Class blocks, Now, and short-boo
  const base={facilityId:7807,facilityName:'34MSE',roomId:1,roomName:'Synthetic Studio',contactName:'Synthetic user',isClass:true};
  const sessions=[{...base,key:'long',label:'Long class',start:'2026-09-23T15:00:00Z',end:'2026-09-23T19:00:00Z'}, {...base,key:'short',label:'Short class',start:'2026-09-23T16:00:00Z',end:'2026-09-23T16:15:00Z'}];
  const html=renderToStaticMarkup(React.createElement(TimelineDay,{date,sessions,bounds:{startMinutes:540,endMinutes:900,durationMinutes:360},now:Date.parse('2026-09-23T16:05:00Z'),onSelect:()=>{}}));
- assert.match(html,/2 overlap lanes/);assert.match(html,/--lanes:2/);assert.match(html,/data-class="true"/);assert.match(html,/data-live="true"/);assert.match(html,/>Now</);assert.match(html,/Short bookings/);assert.match(html,/Open details/);
+ assert.match(html,/2 overlap lanes/);assert.match(html,/--lanes:2/);assert.match(html,/data-category="class"/);assert.match(html,/data-live="true"/);assert.match(html,/>Now</);assert.match(html,/Short bookings/);assert.match(html,/Open details/);
  assert.match(html,/--size:66\.666/);assert.match(html,/--size:4\.166/);
 });
 test('out-of-period source records do not inflate summary or create rows; invalid times stay inspectable',()=>{
  const outside={key:'outside',label:'Outside',facilityId:7807,start:'2026-10-01T15:00:00Z',end:'2026-10-01T16:00:00Z'};
  const html=renderView({...snapshot,sessions:[outside,{key:'invalid',label:'Unknown time',facilityId:7807,start:null,end:null}]});
  assert.match(html,/0 bookings/);assert.match(html,/Schedule needs review/);assert.match(html,/Unknown time/);assert.doesNotMatch(html,/Outside/);
+});
+
+test('Maintenance and unclaimed bookings retain geometry and category chips stay exclusive',()=>{
+ const base={facilityId:7807,facilityName:'34MSE',roomId:1,roomName:'Studio',isClass:false,contactName:null,start:'2026-09-23T15:00:00Z',end:'2026-09-23T16:00:00Z'};
+ const sessions=[{...base,key:'maintenance',label:'Equipment care',serviceId:27,serviceName:'Maintenance'}, {...base,key:'unclaimed',label:'Open studio',serviceName:'Recording'}];
+ const html=renderToStaticMarkup(React.createElement(TimelineDay,{date,sessions,bounds:{startMinutes:540,endMinutes:900,durationMinutes:360},now:null,onSelect:()=>{}}));
+ assert.match(html,/data-category="maintenance"/);
+ assert.match(html,/>Maintenance<\/span>/);
+ assert.match(html,/data-category="available"/);
+ assert.doesNotMatch(html,/>Available<\/span>/);
+ assert.equal((html.match(/--size:16\.666666666666664%/g)||[]).length,2);
+ assert.match(html,/2 bookings/);
+ const {DailyList}=load('src/app/calendar/DailyList.tsx');
+ const list=renderToStaticMarkup(React.createElement(DailyList,{sessions,onSelect:()=>{}}));
+ assert.match(list,/data-category="maintenance"/);
+ assert.match(list,/data-category="available"/);
+ assert.match(list,/>Maintenance<\/span>/);
+ assert.doesNotMatch(list,/>Available<\/span>/);
 });

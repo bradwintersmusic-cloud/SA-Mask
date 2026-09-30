@@ -1,3 +1,4 @@
+import { getRoomDisplayName, compareRoomDisplay } from "@/config/room-display";
 import type { StudioSession } from "@/lib/studio-assistant/types";
 import { centralDate, sessionTime } from "./time";
 export function sessionLabel(session: StudioSession) {
@@ -9,10 +10,7 @@ export function roomKey(session: StudioSession) {
   return `${session.facilityId}:${session.roomId ?? session.roomName ?? "unspecified"}`;
 }
 export function roomLabel(session: StudioSession) {
-  return (
-    session.roomName ??
-    (session.roomId ? `Studio #${session.roomId}` : "Studio not provided")
-  );
+  return getRoomDisplayName(session);
 }
 export function sessionRange(session: StudioSession) {
   if (!session.start || !session.end) return "Schedule incomplete";
@@ -61,6 +59,6 @@ export function groupStudios(sessions: StudioSession[]) {
     (a, b) =>
       a.facilityName.localeCompare(b.facilityName, undefined, {
         numeric: true,
-      }) || a.name.localeCompare(b.name, undefined, { numeric: true }),
+      }) || compareRoomDisplay(a.sessions[0], b.sessions[0]),
   );
 }

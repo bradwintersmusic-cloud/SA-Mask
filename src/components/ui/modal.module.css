@@ -53,3 +53,8 @@
 .header h2 { line-height:1.35; letter-spacing:-.025em; }
 .description { font-size:13px; line-height:1.65; }
 @media(max-width:480px) { .header,.body { padding:18px; } }
+
+
+.header { background: var(--section-fill); position: relative; }
+.header::after { content: ""; position: absolute; inset: auto 0 0; height: 2px; background: var(--brand-rule); opacity: .7; pointer-events: none; }
+.body { background: var(--panel-fill); }

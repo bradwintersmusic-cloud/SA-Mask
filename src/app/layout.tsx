@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/AppShell";
 import { ThemeProvider, themeScript } from "@/components/theme/ThemeProvider";
+import { ThemeFavicon } from "@/components/theme/ThemeFavicon";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
+        <link id="theme-favicon" rel="icon" type="image/svg+xml" sizes="any" href="/favicon-dark.svg" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
         <ThemeProvider>
+          <ThemeFavicon />
           <AppShell>{children}</AppShell>
         </ThemeProvider>
       </body>

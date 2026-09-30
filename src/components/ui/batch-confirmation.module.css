@@ -3,3 +3,6 @@
 .actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; margin-top:20px; }
 .notice { color:var(--text-secondary); line-height:1.5; }
 @media(max-width:520px) { .actions { flex-direction:column; } .actions > * { width:100%; } }
+
+
+.actions { padding-top: 16px; border-top: 1px solid var(--border); }

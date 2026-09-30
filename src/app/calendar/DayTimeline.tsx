@@ -1,4 +1,5 @@
-import { CategoryChip } from "@/components/ui/CategoryChip";
+import { BookingCategoryChip } from "@/components/ui/BookingCategoryChip";
+import { classifySession } from "@/lib/studio-assistant/session-classification";
 import type { StudioSession } from "@/lib/studio-assistant/types";
 import { layoutTimeline } from "@/lib/calendar/timeline";
 import { sessionTime } from "@/lib/calendar/time";
@@ -39,6 +40,7 @@ export function DayTimeline({
               key={block.session.key}
               type="button"
               className={styles.sessionBlock}
+              data-category={classifySession(block.session)}
               style={{
                 top: block.top,
                 height: block.height,
@@ -46,9 +48,9 @@ export function DayTimeline({
                 width: `calc(${100 / block.columns}% - 4px)`,
               }}
               onClick={() => onSelect(block.session)}
-              aria-label={`${block.session.isClass ? "Class, " : ""}${sessionLabel(block.session)}${block.session.contactName ? `, ${block.session.contactName}` : ""}, ${sessionRange(block.session)}. Open details.`}
+              aria-label={`${classifySession(block.session)}, ${sessionLabel(block.session)}${block.session.contactName ? `, ${block.session.contactName}` : ""}, ${sessionRange(block.session)}. Open details.`}
             >
-              <strong>{block.session.isClass && <CategoryChip kind="class" />} {sessionLabel(block.session)}</strong>
+              <strong><BookingCategoryChip session={block.session} /> {sessionLabel(block.session)}</strong>
               {block.height >= 80 && block.session.contactName && (
                 <span>{block.session.contactName}</span>
               )}

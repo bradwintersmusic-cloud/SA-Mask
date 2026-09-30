@@ -9,6 +9,7 @@ type Props = {
   affectedCount: number;
   actionLabel: string;
   destructive?: boolean;
+  confirmVariant?: "primary" | "danger" | "success";
   acknowledgement?: string;
   loading?: boolean;
   blockedReason?: string;
@@ -29,7 +30,7 @@ export function BatchConfirmationModal(props: Props) {
     {props.blockedReason && <p className={styles.notice}>{props.blockedReason}</p>}
     <div className={styles.actions}>
       <Button variant="secondary" disabled={props.loading} onClick={cancel}>Cancel</Button>
-      <Button variant={props.destructive ? "danger" : "primary"} disabled={disabled} onClick={() => { if (!disabled) props.onConfirm?.(); }}>{props.loading ? "Processing…" : props.actionLabel}</Button>
+      <Button variant={props.destructive ? "danger" : props.confirmVariant ?? "primary"} disabled={disabled} onClick={() => { if (!disabled) props.onConfirm?.(); }}>{props.loading ? "Processing…" : props.actionLabel}</Button>
     </div>
   </Modal>;
 }

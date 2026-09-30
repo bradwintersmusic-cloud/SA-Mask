@@ -75,6 +75,7 @@ export function normalizeCalendar(
       projectId: id(row.project) ?? id(project.id),
       projectName,
       projectCode: code(stamp.project_code) ?? code(project.code),
+      serviceId: id(row.service) ?? id(record(row.service).id),
       serviceName,
       // The administrator confirmed service 29 is the instructional Class service.
       isClass: (id(row.service) ?? id(record(row.service).id)) === 29,

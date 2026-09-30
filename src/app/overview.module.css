@@ -62,3 +62,16 @@
 @media(max-width:1100px) { .todayHeader,.activity { padding:26px; } .content { grid-template-columns:minmax(0,1.2fr) minmax(285px,1fr); } .sectionHeading { align-items:start; flex-direction:column; gap:8px; } }
 @media(max-width:760px) { .pageHeader { margin-bottom:20px; } .pageHeader > span { display:none; } .todayHeader { padding:24px 20px; flex-wrap:wrap; gap:20px; } .todayHeader h2 { font-size:34px; } .headerActions { width:100%; display:flex; align-items:center; justify-content:space-between; } .content { display:flex; flex-direction:column; } .attention { order:0; padding:24px 20px; } .activity { order:1; border-right:0; border-bottom:1px solid var(--border); padding:24px 20px; } .month { order:2; padding:24px 20px; } .sectionHeading { flex-direction:row; align-items:center; } .sectionHeading > span { font-size:9px; } .studioRow { min-height:82px; } .monthGrid a { min-height:44px; } .monthHeader button { width:44px; height:44px; } .consoleFooter { padding:16px 20px; flex-wrap:wrap; font-size:8px; } .date span { display:block; margin-top:8px; } }
 @media(prefers-reduced-motion:reduce) { .studioRow,.arrow,.monthGrid a { transition:none; } }
+.roomCounts { text-align:right; }
+.roomCounts small { display:block; color:var(--text-secondary); font-size:10px; font-weight:400; white-space:nowrap; }
+
+
+.console { background: var(--panel-fill); }
+.todayHeader { background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--brand-secondary) 5%, transparent), transparent 60%), var(--section-fill); }
+.facilityHeading { border-image: var(--brand-rule) 1; }
+.monthHeader button { background: var(--control-fill); box-shadow: var(--control-shadow); transition: background var(--motion-control), border-color var(--motion-control), box-shadow var(--motion-control); }
+.monthHeader button:hover { background: var(--control-hover); border-color: var(--border-active); }
+.monthHeader button:active { box-shadow: var(--control-pressed); }
+.monthGrid a[aria-current="date"] { background: var(--selected-fill); color: var(--selected-text); box-shadow: var(--selected-shadow); }
+.studioRow:hover, .requestList a:hover { background: var(--row-hover); }
+.consoleFooter { background: color-mix(in srgb, var(--surface-2) 65%, transparent); }

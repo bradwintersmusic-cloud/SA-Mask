@@ -292,6 +292,7 @@ export function RequestsWorkspace({
         )}
       </div>
       {confirmation && <BatchConfirmationModal
+        confirmVariant={confirmation.action === "approve" ? "success" : "danger"}
         affectedCount={confirmation.requests.length}
         actionLabel={`${confirmation.action === "approve" ? "Approve" : "Deny"} ${confirmation.requests.length}`}
         loading={busy}

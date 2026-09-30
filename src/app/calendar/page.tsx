@@ -1,3 +1,4 @@
+import { querySchedulePreferences } from "@/lib/calendar/preferences";
 import type { Metadata } from "next";
 import { calendarQueryDate, calendarQueryFilters, type CalendarQuery } from "@/lib/calendar/query";
 import { getAllFacilityCalendars } from "@/lib/studio-assistant/sessions";
@@ -9,5 +10,6 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const query = await searchParams;
   const snapshot = await getAllFacilityCalendars(calendarQueryDate(query));
   const filters = calendarQueryFilters(query, snapshot);
-  return <CalendarWorkspace deleteEnabled={sessionDeleteEnabled()} key={`${snapshot.date}:${filters.facility}:${filters.studio}`} initialSnapshot={snapshot} initialFacility={filters.facility} initialStudio={filters.studio} />;
+  const preferences = querySchedulePreferences(query, filters.studio);
+  return <CalendarWorkspace deleteEnabled={sessionDeleteEnabled()} key={`${snapshot.date}:${filters.facility}:${filters.studio}:${JSON.stringify(preferences)}`} explicitPreferences={preferences} initialSnapshot={snapshot} initialFacility={filters.facility} initialStudio={filters.studio} />;
 }

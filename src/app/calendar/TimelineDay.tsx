@@ -3,7 +3,8 @@ import type { StudioSession } from "@/lib/studio-assistant/types";
 import { groupStudios, sessionLabel, sessionRange } from "@/lib/calendar/display";
 import { centralDate, centralDayRange } from "@/lib/calendar/time";
 import { assignOverlapLanes, operationalIntervals, timelinePosition, timelineTicks, type TimelineBounds } from "@/lib/calendar/operations-timeline";
-import { CategoryChip } from "@/components/ui/CategoryChip";
+import { BookingCategoryChip } from "@/components/ui/BookingCategoryChip";
+import { classifySession } from "@/lib/studio-assistant/session-classification";
 import styles from "./operations-timeline.module.css";
 
 export function TimelineDay({ date, sessions, bounds, now, onSelect }: {
@@ -32,14 +33,14 @@ export function TimelineDay({ date, sessions, bounds, now, onSelect }: {
           <div className={styles.track}>{ruler(true)}{guides()}{layout.blocks.map(block => {
             const position = timelinePosition(block.start, block.end, bounds);
             const live = now !== null && Date.parse(block.session.start!) <= now && Date.parse(block.session.end!) > now;
-            const label = `${block.session.isClass ? "Class. " : ""}${sessionLabel(block.session)}. ${block.session.contactName ?? ""}. ${sessionRange(block.session)}. Open details.`;
-            return <button key={block.session.key} type="button" className={styles.booking} data-class={block.session.isClass} data-live={live} data-short={block.end - block.start < 30} onClick={() => onSelect(block.session)} title={label} aria-label={label} style={{ "--offset": `${position.offset}%`, "--size": `${position.size}%`, "--lane": block.lane } as CSSProperties}>
-              <span className={styles.bookingTitle}>{block.session.isClass && <CategoryChip kind="class" />}<strong>{sessionLabel(block.session)}</strong></span>
+            const label = `${classifySession(block.session)}. ${sessionLabel(block.session)}. ${block.session.contactName ?? ""}. ${sessionRange(block.session)}. Open details.`;
+            return <button key={block.session.key} type="button" className={styles.booking} data-category={classifySession(block.session)} data-live={live} data-short={block.end - block.start < 30} onClick={() => onSelect(block.session)} title={label} aria-label={label} style={{ "--offset": `${position.offset}%`, "--size": `${position.size}%`, "--lane": block.lane } as CSSProperties}>
+              <span className={styles.bookingTitle}><BookingCategoryChip session={block.session} /><strong>{sessionLabel(block.session)}</strong></span>
               {(block.session.contactName || !block.session.isClass) && <span className={styles.contact}>{block.session.contactName ?? block.session.serviceName ?? "Studio booking"}</span>}
               <span className={styles.bookingTime}>{live && <b>Now · </b>}{sessionRange(block.session)}</span>
             </button>;
           })}</div>
-          {short.length > 0 && <div className={styles.shortBookings}><span>{layout.lanes > 4 ? "Booking details" : "Short bookings"}</span>{short.map(({session}) => <button key={session.key} onClick={() => onSelect(session)}>{session.isClass && <CategoryChip kind="class" />}{sessionLabel(session)} · {sessionRange(session)}</button>)}</div>}
+          {short.length > 0 && <div className={styles.shortBookings}><span>{layout.lanes > 4 ? "Booking details" : "Short bookings"}</span>{short.map(({session}) => <button data-category={classifySession(session)} key={session.key} onClick={() => onSelect(session)}><BookingCategoryChip session={session} />{sessionLabel(session)} · {sessionRange(session)}</button>)}</div>}
         </div>;
       })}
     </div></div>}

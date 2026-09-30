@@ -14,20 +14,6 @@
   color: var(--text-muted);
   margin-right: 4px;
 }
-.filters button {
-  min-height: 44px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface-1);
-  color: var(--text-secondary);
-}
-.filters button[aria-pressed="true"] {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: var(--accent);
-  font-weight: 600;
-}
 .resultCount {
   margin-left: auto;
   font-size: 12px;
@@ -297,8 +283,6 @@
   }
 }
 
-.filters button { background:var(--control-fill); box-shadow:var(--control-shadow); transition:background .14s,border-color .14s; }
-.filters button:hover { border-color:var(--border-active); }
 .actionBar { background:var(--panel-fill); box-shadow:var(--shadow),inset 0 1px 0 var(--edge-highlight); }
 .desktopList,.requestCard { box-shadow:var(--shadow); border-top-color:var(--border-active); }
 .table th { font:10px var(--font-mono); text-transform:uppercase; letter-spacing:.06em; padding-block:11px; }
@@ -319,3 +303,13 @@
 .quickActions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .quickActions span { font-size: 12px; }
 .rowError { flex-basis: 100%; color: var(--danger); overflow-wrap: anywhere; }
+
+.actionBar { background: var(--surface-glass); backdrop-filter: blur(10px); }
+.table th { background: var(--section-fill); box-shadow: inset 0 1px var(--edge-highlight); }
+.table tbody tr:nth-child(even):not([data-selected="true"]) { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.table tbody tr:not([data-selected="true"]):hover { background: var(--row-hover); }
+.quickActions button { min-height: 44px; width: 44px; background: var(--control-fill); box-shadow: var(--control-shadow); transition: background var(--motion-control), border-color var(--motion-control), box-shadow var(--motion-control); }
+.quickActions .approveQuick { background: linear-gradient(160deg, var(--success-soft), var(--surface-1)); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+.quickActions .denyQuick { background: linear-gradient(160deg, var(--danger-soft), var(--surface-1)); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+.quickActions button:not(:disabled):active { box-shadow: var(--control-pressed); }
+.quickActions button:disabled { box-shadow: none; opacity: .58; }

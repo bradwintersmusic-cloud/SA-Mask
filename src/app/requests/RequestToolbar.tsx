@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { facilities } from "@/config/facilities";
 import type { RequestAction } from "@/lib/studio-assistant/types";
 import styles from "./requests.module.css";
+import segmented from "@/components/ui/segmented-control.module.css";
 type Props = {
   facility: string;
   onFacility: (value: string) => void;
@@ -30,23 +31,25 @@ export function RequestToolbar(props: Props) {
         aria-label="Filter by facility"
       >
         <span className={styles.filterLabel}>Facility</span>
-        {[
-          { key: "all", name: "All" },
-          ...facilities.map((facility) => ({
-            key: String(facility.studioAssistantId),
-            name: facility.name,
-          })),
-        ].map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            aria-pressed={props.facility === item.key}
-            disabled={props.busy}
-            onClick={() => props.onFacility(item.key)}
-          >
-            {item.name}
-          </button>
-        ))}
+        <div className={segmented.switcher}>
+          {[
+            { key: "all", name: "All" },
+            ...facilities.map((facility) => ({
+              key: String(facility.studioAssistantId),
+              name: facility.name,
+            })),
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              aria-pressed={props.facility === item.key}
+              disabled={props.busy}
+              onClick={() => props.onFacility(item.key)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
         <span className={styles.resultCount}>{props.visibleCount} visible</span>
       </div>
       <div className={styles.actionBar}>
@@ -72,7 +75,7 @@ export function RequestToolbar(props: Props) {
         </div>
         {!props.writesEnabled && <span className="muted">Request actions disabled</span>}
         <div className={styles.actionButtons}>
-          <Button disabled={props.busy || !props.writesEnabled || !props.selectedCount || props.selectedCount > 100} onClick={() => props.onAction("approve")}>
+          <Button variant="success" disabled={props.busy || !props.writesEnabled || !props.selectedCount || props.selectedCount > 100} onClick={() => props.onAction("approve")}>
             Approve Selected
           </Button>
           <Button

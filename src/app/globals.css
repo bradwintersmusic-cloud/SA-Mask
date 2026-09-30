@@ -68,11 +68,11 @@
 }
 [data-theme="belmont"] {
   color-scheme: light;
-  --bg: #e8ecf2;
-  --surface-1: #ffffff;
-  --surface-2: #f4f6fa;
-  --surface-3: #e7ebf3;
-  --border: #c5cedf;
+  --bg: #d6deea;
+  --surface-1: #fbfcff;
+  --surface-2: #edf2f9;
+  --surface-3: #dfe7f3;
+  --border: #b7c5da;
   --text-primary: #172741;
   --text-secondary: #4f6079;
   --text-muted: #63718a;
@@ -84,16 +84,16 @@
   --success-soft: #e9f5ef;
   --warning: #865b14;
   --warning-soft: #fbf2e3;
-  --danger: #c9262d;
+  --danger: #a91e43;
   --danger-soft: #fcebed;
-  --danger-solid: #c9262d;
+  --danger-solid: #a91e43;
   --shadow: 0 8px 28px #00246909;
   --overlay: #00133799;
   --brand-secondary: #c9262d;
   --bg-glow: #00246916;
-  --secondary-glow: #c9262d06;
-  --nav-background: linear-gradient(165deg, #dce5f5 0%, #f2f5fa 65%);
-  --nav-active-background: linear-gradient(110deg, #002469, #153e83);
+  --secondary-glow: #c9262d0b;
+  --nav-background: linear-gradient(165deg, #c6d3e8 0%, #e9eef6 65%);
+  --nav-active-background: linear-gradient(135deg, #244c91, #002469 80%);
   --nav-active-text: #ffffff;
   --nav-accent-line: #c9262d;
   --shell-accent-line: #002469;
@@ -198,13 +198,26 @@ svg {
 }
 
 /* Shared finish tokens: tinted edges, raised controls, recessed fields. */
-:root {
+:root,
+[data-theme] {
   --edge-highlight: color-mix(in srgb, var(--text-primary) 10%, transparent);
   --panel-fill: linear-gradient(145deg, color-mix(in srgb, var(--surface-2) 40%, var(--surface-1)), var(--surface-1) 65%);
   --control-fill: linear-gradient(180deg, var(--surface-3), var(--surface-2));
   --control-shadow: inset 0 1px 0 var(--edge-highlight), 0 2px 3px #00000018;
   --input-shadow: inset 0 2px 4px #00000018;
   --border-active: color-mix(in srgb, var(--accent) 50%, var(--border));
+  --control-hover: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--surface-3)), var(--surface-2));
+  --control-pressed: inset 0 2px 4px #00000024, inset 0 1px 0 var(--border);
+  --control-glow: 0 0 12px color-mix(in srgb, var(--accent) 9%, transparent);
+  --primary-fill: linear-gradient(165deg, color-mix(in srgb, var(--accent-strong) 86%, white), var(--accent-strong));
+  --selected-fill: var(--nav-active-background);
+  --selected-text: var(--nav-active-text);
+  --selected-shadow: var(--control-shadow), var(--control-glow);
+  --surface-glass: color-mix(in srgb, var(--surface-1) 90%, transparent);
+  --section-fill: linear-gradient(110deg, var(--accent-soft), var(--surface-2) 70%, var(--surface-1));
+  --row-hover: linear-gradient(100deg, color-mix(in srgb, var(--accent-soft) 70%, var(--surface-1)), var(--surface-2));
+  --brand-rule: linear-gradient(90deg, var(--accent), transparent);
+  --motion-control: 150ms ease;
 }
 [data-theme="light"], [data-theme="belmont"] {
   --shadow: 0 5px 18px #1727410c, 0 1px 3px #1727410a;
@@ -214,7 +227,19 @@ svg {
   --input-shadow: inset 0 1px 3px #1727410b;
   --nav-accent-line: var(--accent);
 }
-[data-theme="belmont"] { --nav-accent-line: var(--brand-secondary); }
+[data-theme="light"] {
+  --bg: #edf1f7;
+  --border: #cdd7e5;
+  --nav-active-background: linear-gradient(145deg, #4877c9, #2853a4);
+  --nav-active-text: #ffffff;
+  --shadow: 0 6px 20px #243f6810, 0 1px 3px #243f6810;
+}
+[data-theme="belmont"] {
+  --nav-accent-line: var(--brand-secondary);
+  --shadow: 0 7px 22px #00246914, 0 1px 3px #00246912;
+  --brand-rule: linear-gradient(90deg, #002469 0%, #244c91 70%, #c9262d 100%);
+  --selected-shadow: inset 0 1px 0 #ffffff30, inset 0 -2px 0 var(--brand-secondary), 0 3px 8px #00246920;
+}
 input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   box-shadow: var(--input-shadow);
   transition: border-color .14s ease, box-shadow .14s ease, background-color .14s ease;
@@ -225,4 +250,5 @@ input:not([type="checkbox"]):not([type="radio"]):focus-visible, select:focus-vis
   border-color:var(--accent); box-shadow:var(--input-shadow),0 0 0 4px color-mix(in srgb,var(--accent) 12%,transparent);
 }
 button:disabled { opacity:.58; }
+button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 ::selection { background:var(--accent-soft); color:var(--text-primary); }

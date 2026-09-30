@@ -1,4 +1,5 @@
 "use client";
+import { countBookings, sessionCountLabel } from "@/lib/studio-assistant/session-classification";
 import Link from "next/link";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -23,9 +24,9 @@ export function TodayModule({today,calendar,requests}:{today:string;calendar:Cal
     <section className={styles.console} aria-labelledby="today-title" aria-busy={busy}>
       <header className={styles.todayHeader}>
         <div><p className={styles.date}>{dateLabel} <span> / Central Time</span></p><h2 id="today-title">Today<span className={styles.statusDot} aria-hidden="true" /></h2>
-        <p className={styles.summary}>{!calendar || (calendar.issues.length===facilities.length&&!activity.sessions.length) ? "Session activity unavailable" : <><strong>{activity.sessions.length}</strong> {partial?"loaded ":""}sessions across <strong>{activity.studioCount}</strong> studios</>}</p>
+        <p className={styles.summary}>{!calendar || (calendar.issues.length===facilities.length&&!activity.sessions.length) ? "Session activity unavailable" : <><strong>{activity.counts.session}</strong> {partial?"loaded ":""}sessions · <strong>{activity.counts.class}</strong> classes across <strong>{activity.studioCount}</strong> studios</>}</p>
         {partial && <p className={styles.notice}>Partial or unavailable activity · {calendar?.issues.map(issue=>issue.facilityName).join(", ") || "Both facilities"}</p>}
-        {activity.uncertainCount>0&&<p className={styles.notice}>{activity.uncertainCount} returned sessions have uncertain times; retained for review.</p>}</div>
+        {activity.uncertainCount>0&&<p className={styles.notice}>{activity.uncertainCount} returned bookings have uncertain times; retained for review.</p>}</div>
         <div className={styles.headerActions}><Button variant="secondary" disabled={busy} onClick={()=>startTransition(()=>router.refresh())}>{busy?"Refreshing…":"Refresh"}</Button><Link href={calendarLink(today)} prefetch={false}>Open day schedule <span aria-hidden="true">↗</span></Link></div>
       </header>
       <div className={styles.content}>
@@ -34,9 +35,9 @@ export function TodayModule({today,calendar,requests}:{today:string;calendar:Cal
           {facilities.map(facility=>{
             const rooms=activity.rooms.filter(room=>room.facilityId===facility.studioAssistantId);
             const failed=!calendar||calendar.issues.some(issue=>issue.facilityId===facility.studioAssistantId);
-            const total=rooms.reduce((sum,room)=>sum+room.sessions.length,0);
-            return <section className={styles.facility} key={facility.key} aria-label={`${facility.name} activity`}><div className={styles.facilityHeading}><h4>{facility.name}</h4><span>{failed?"Unavailable":`${total} sessions`}</span></div>
-              {rooms.map(room=><Link className={styles.studioRow} key={room.key} prefetch={false} href={calendarLink(today,facility.studioAssistantId,room.sessions[0].roomId)} aria-label={`${facility.name}, ${room.name}, ${room.sessions.length} sessions. Open schedule.`}><div><span>{room.name}</span><div className={styles.rail} aria-hidden="true"><i style={{width:`${room.sessions.length/activity.maxCount*100}%`}} /></div></div><strong>{room.sessions.length}</strong><span className={styles.arrow} aria-hidden="true">↗</span></Link>)}
+            const total=sessionCountLabel(rooms.flatMap(room=>room.sessions));
+            return <section className={styles.facility} key={facility.key} aria-label={`${facility.name} activity`}><div className={styles.facilityHeading}><h4>{facility.name}</h4><span>{failed?"Unavailable":total}</span></div>
+              {rooms.map(room=><Link className={styles.studioRow} key={room.key} prefetch={false} href={calendarLink(today,facility.studioAssistantId,room.sessions[0].roomId)} aria-label={`${facility.name}, ${room.name}, ${sessionCountLabel(room.sessions)}. Open schedule.`}><div><span>{room.name}</span><div className={styles.rail} aria-hidden="true"><i style={{width:`${countBookings(room.sessions).session/activity.maxCount*100}%`}} /></div></div><strong className={styles.roomCounts}>{countBookings(room.sessions).session}<small>{countBookings(room.sessions).class} classes</small></strong><span className={styles.arrow} aria-hidden="true">↗</span></Link>)}
               {!rooms.length&&<p className={styles.quiet}>{failed?"Could not load this facility. Refresh to retry.":"No sessions today."}</p>}
             </section>;
           })}

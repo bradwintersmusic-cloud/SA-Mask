@@ -28,6 +28,9 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
+.themeOption { background: var(--panel-fill); box-shadow: var(--control-shadow); transition: border-color var(--motion-control), box-shadow var(--motion-control); }
+.themeOption:hover { border-color: var(--border-active); box-shadow: var(--shadow); }
+.themeOption.selected { box-shadow: inset 0 1px var(--edge-highlight), 0 0 0 1px var(--accent), var(--shadow); }
 .swatch {
   display: flex;
   gap: 10px;
