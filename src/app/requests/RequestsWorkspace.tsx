@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
+import { useRequestsSnapshot } from "@/components/requests/RequestsProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { BatchConfirmationModal } from "@/components/ui/BatchConfirmationModal";
@@ -22,7 +23,7 @@ export function RequestsWorkspace({
   initialSnapshot: RequestsSnapshot;
   writesEnabled: boolean;
 }) {
-  const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const { snapshot, acceptSnapshot: publishSnapshot } = useRequestsSnapshot(initialSnapshot);
   const [facility, setFacility] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmation, setConfirmation] = useState<{
@@ -36,7 +37,7 @@ export function RequestsWorkspace({
   const pendingRef = useRef(new Set<string>());
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
-  const latestSnapshot = useRef(initialSnapshot.loadedAt);
+  const latestSnapshot = useRef(snapshot.loadedAt);
   const visible = snapshot.requests.filter(
     (request) => facility === "all" || String(request.facilityId) === facility,
   );
@@ -50,13 +51,12 @@ export function RequestsWorkspace({
     next: RequestsSnapshot,
     successful = new Set<string>(),
   ) {
-    if (next.loadedAt < latestSnapshot.current) {
+    if (next.loadedAt < latestSnapshot.current || next.loadedAt < snapshot.loadedAt) {
       setSelected(previous => new Set([...previous].filter(key => !successful.has(key))));
       return;
     }
     latestSnapshot.current = next.loadedAt;
-    // A failed facility read must not make its unresolved requests disappear.
-    setSnapshot(previous => ({ ...next, requests: [...next.requests, ...previous.requests.filter(request => next.issues.some(issue => issue.facilityId === request.facilityId))] }));
+    publishSnapshot(next);
     const available = new Set(next.requests.map(requestKey));
     setSelected(
       (previous) =>

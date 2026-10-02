@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { RequestsProvider } from "@/components/requests/RequestsProvider";
+import { getRequestRenderSnapshot } from "@/lib/studio-assistant/request-render-snapshot";
 import { Navigation } from "./Navigation";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { Icon } from "@/components/ui/Icon";
@@ -18,9 +20,9 @@ function Brand() {
     </div>
   );
 }
-export function AppShell({ children }: { children: ReactNode }) {
+export async function AppShell({ children }: { children: ReactNode }) {
   return (
-    <>
+    <RequestsProvider initialSnapshot={await getRequestRenderSnapshot()}>
       <a className={styles.skip} href="#main-content">
         Skip to content
       </a>
@@ -61,6 +63,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </footer>
       </div>
       <Navigation mobile />
-    </>
+    </RequestsProvider>
   );
 }

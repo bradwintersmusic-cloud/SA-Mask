@@ -13,7 +13,7 @@ function load(file){
  const exports={};modules.set(absolute,exports);
  const output=ts.transpileModule(fs.readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(output,{exports,URLSearchParams,require:(name)=>{
-  if(name==='next/navigation')return {useRouter:()=>({refresh:()=>{throw Error('No request');}})};
+  if(name==='next/navigation')return {usePathname:()=>'/requests',useRouter:()=>({refresh:()=>{throw Error('No request');}})};
   if(name==='next/link')return {default:({children,prefetch,...props})=>{void prefetch;return React.createElement('a',props,children);}};
   if(name.endsWith('.css'))return {default:new Proxy({},{get:(_,key)=>key})};
   if(!name.startsWith('.')&&!name.startsWith('@/'))return require(name);
@@ -41,4 +41,30 @@ test('session modal omits status/type fields without changing model and formats 
  assert.match(html,/1 hr 15 min/);
  assert.doesNotMatch(html,/<dt>(Session type|Booking type|Status)<\/dt>/);
  assert.equal(session.status,'PENDING');
+});
+
+const {Navigation}=load('src/components/layout/Navigation.tsx');
+const {RequestsProvider}=load('src/components/requests/RequestsProvider.tsx');
+const {mergeRequestsSnapshot}=load('src/lib/studio-assistant/request-snapshot.ts');
+test('both navigation views show the aggregate count, cap the badge and label the full count',()=>{
+ for(const mobile of [false,true]) for(const count of [0,1,3,99,100,1234]) {
+  const snapshot={requests:Array.from({length:count},(_,id)=>({id,facilityId:id%2?7807:7808})),issues:[],loadedAt:'2026-10-02T12:00:00Z'};
+  const html=renderToStaticMarkup(React.createElement(RequestsProvider,{initialSnapshot:snapshot},React.createElement(Navigation,{mobile})));
+  if(count===0) {assert.doesNotMatch(html,/requestBadge/);assert.doesNotMatch(html,/pending request/);}
+  else {
+   assert.match(html,new RegExp(`aria-label="Requests, ${count} pending ${count===1?'request':'requests'}"`));
+   assert.ok(html.includes(`class="requestBadge" aria-hidden="true">${count>99?'99+':count}</span>`));
+  }
+ }
+});
+test('shared snapshot reconciles refreshes and mutation results without losing failed facilities',()=>{
+ const original={requests:[{id:1,facilityId:7807},{id:2,facilityId:7808}],issues:[],loadedAt:'2026-10-02T12:00:00Z'};
+ const refreshed={requests:[{id:2,facilityId:7808}],issues:[],loadedAt:'2026-10-02T12:01:00Z'};
+ assert.equal(mergeRequestsSnapshot(original,refreshed).requests.length,1);
+ assert.equal(mergeRequestsSnapshot(refreshed,original),refreshed);
+ const failed={requests:[],issues:[{facilityId:7808}],loadedAt:'2026-10-02T12:02:00Z'};
+ const retained=mergeRequestsSnapshot(refreshed,failed);
+ assert.equal(retained.requests.length,1);
+ assert.equal(retained.requests[0].id,2);
+ assert.equal(mergeRequestsSnapshot(retained,{requests:[],issues:[],loadedAt:'2026-10-02T12:03:00Z'}).requests.length,0);
 });
