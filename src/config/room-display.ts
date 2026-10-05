@@ -24,7 +24,12 @@ function configuredRoom(room: Room) {
     ?? remRooms.find(entry => [entry.name, ...(entry.aliases ?? [])].some(alias => alias.toLowerCase() === name));
 }
 export function getRoomDisplayName(room: Room) {
-  return configuredRoom(room)?.name ?? room.roomName
+  // Existing verified 34MSE calendar names (README live inventory).
+  const mseId = facilities.find(facility => facility.key === "34mse")!.studioAssistantId;
+  const verifiedName = room.facilityId === mseId && !room.roomName
+    ? ({ 10475: "Columbia Studio A", 10476: "Quonset Hut Studio" } as Record<number, string>)[room.roomId ?? 0]
+    : undefined;
+  return configuredRoom(room)?.name ?? room.roomName ?? verifiedName
     ?? (room.roomId ? `Studio #${room.roomId}` : "Studio not provided");
 }
 export function getRoomSortOrder(room: Room) {

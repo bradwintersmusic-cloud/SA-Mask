@@ -61,6 +61,8 @@ export function createAdapter(
       "sessions",
       "session-deletion",
       "enrollment",
+      "academic-model",
+      "academics",
     ].map((name) => load(`src/lib/studio-assistant/${name}.ts`)),
     ...["time", "display", "timeline", "operations-timeline", "query", "session-search", "duration", "preferences"].map((name) =>
       load(`src/lib/calendar/${name}.ts`),

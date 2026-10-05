@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchSchoolClasses } from "./classes";
 import { school } from "@/config/school";
 import { studioAssistantFetch, studioAssistantMutation } from "./client";
 import { assertEnrollmentWritesEnabled } from "./write-safety";
@@ -51,7 +52,7 @@ export function normalizeClasses(raw: unknown): StudioClass[] {
     return items(raw).map(row => ({ id: row.id as number, name: text(row.name), code: text(row.code), snippet: text(row.snippet) })).sort((a, b) => compare(a.code, b.code) || compare(a.name, b.name));
 }
 export const getSchoolUsers = () => cached("users", async () => normalizeUsers(await studioAssistantFetch(`/api/school/${school.id}/member`)));
-export const getSchoolClasses = () => cached("classes", async () => normalizeClasses(await studioAssistantFetch(`/api/school/${school.id}/class`)));
+export const getSchoolClasses = () => cached("classes", async () => normalizeClasses(await fetchSchoolClasses()));
 export async function getDirectory(): Promise<Directory> {
     const [users, classes] = await Promise.allSettled([getSchoolUsers(), getSchoolClasses()]);
     return { users: users.status === "fulfilled" ? users.value : [], classes: classes.status === "fulfilled" ? classes.value : [], usersLoaded: users.status === "fulfilled", classesLoaded: classes.status === "fulfilled", issues: [...(users.status === "rejected" ? ["School members could not be loaded."] : []), ...(classes.status === "rejected" ? ["Classes could not be loaded."] : [])] };
