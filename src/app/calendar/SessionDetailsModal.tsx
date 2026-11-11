@@ -25,7 +25,12 @@ export function SessionDetailsModal({
           session.start &&
           session.end &&
           Date.parse(session.end) > Date.parse(session.start)
-            ? formatDuration(Math.round((Date.parse(session.end) - Date.parse(session.start)) / 60_000))
+            ? formatDuration(
+                Math.round(
+                  (Date.parse(session.end) - Date.parse(session.start)) /
+                    60_000,
+                ),
+              )
             : null,
         ],
         ["Project", session.projectName],
@@ -37,9 +42,9 @@ export function SessionDetailsModal({
     ? [
         ["Session ID", session.id],
         ["Booking ID", session.bookingId],
-        ["Project ID", session.projectId],
+        /*["Project ID", session.projectId],
         ["Room ID", session.roomId],
-        ["Source timezone", session.timezone],
+        ["Source timezone", session.timezone],*/
       ]
     : [];
   return (
